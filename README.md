@@ -5,7 +5,7 @@ Pynus is a [python3](https://wiki.python.org/moin/BeginnersGuide) program for BI
 Pynus uses a portable framework called Selenium. Use the package manager [pip3](https://pip.pypa.io/en/stable/) to install Selenium.
 
 ```bash
-pip3 install Selenium
+pip3 install selenium
 ```
 The current version of Pynus only supports web browsers listed below. Before running the program, make sure that compatible browser and the respective driver has been properly installed.
 Web Browser   | Driver
