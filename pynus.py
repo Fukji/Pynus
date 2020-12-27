@@ -2,6 +2,7 @@ import csv
 import sys
 from getpass import getpass
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.firefox.options import Options
 from time import sleep
@@ -23,11 +24,6 @@ def finish():
 browser.get(LOGIN)
 sleep(3)
 
-currentUrl = browser.current_url
-if currentUrl != LOGIN:
-    print("Binusmaya is currently unreachable")
-    sys.exit(0)
-
 username = input("Username: ")
 password = getpass()
 
@@ -36,6 +32,12 @@ xpaths = {
     'pass': '//*[@id="login"]/form/p[1]/span/input',
     'submit': '//*[@id="login"]/form/p[4]/input'
 }
+
+try:
+    browser.find_element_by_xpath(xpaths['userID'])
+except NoSuchElementException:
+    print("Binusmaya is currently unreachable")
+    finish()
 
 browser.find_element_by_xpath(xpaths['userID']).clear()
 browser.find_element_by_xpath(xpaths['userID']).send_keys(username)
@@ -60,52 +62,49 @@ sleep(3)
 alreadyReplied = []
 notReplied = []
 newlyReplied = []
-numCourses = len(Select(browser.find_element_by_id('ddlCourse')).options)
+links = []
+courses = Select(browser.find_element_by_id('ddlCourse'))
 
 with open('pynus_data.csv', 'r') as pynus_data:
     reader = csv.reader(pynus_data)
     for row in reader:
         alreadyReplied.append(row[0])
 
-for i in range(numCourses):
-    courses = Select(browser.find_element_by_id('ddlCourse'))
-    courses.select_by_visible_text(courses.options[i].text)
+for my_course in courses.options:
+    courses.select_by_visible_text(my_course.text)
     sleep(2)
-    numClasses = len(Select(browser.find_element_by_id('ddlClass')).options)
-    for j in range(numClasses):
-        courses = Select(browser.find_element_by_id('ddlCourse'))
-        courses.select_by_visible_text(courses.options[i].text)
-        sleep(2)
-        classes = Select(browser.find_element_by_id('ddlClass'))
-        classes.select_by_visible_text(classes.options[j].text)
+    classes = Select(browser.find_element_by_id('ddlClass'))
+    for my_class in classes.options:
+        classes.select_by_visible_text(my_class.text)
         sleep(10)
         topics = Select(browser.find_element_by_id('ddlTopic'))
-        print(f"Selecting {topics.options[-1].text} from {courses.options[i].text}.")
         topics.select_by_visible_text(topics.options[-1].text)
         sleep(30)
         table = browser.find_element_by_id('threadtable')
-        links = [str(title.get_attribute('href')) for title in table.find_elements_by_tag_name('a')][:-1]
-        for link in links:
-            if link in alreadyReplied:
-                continue
-            print(f"Currently checking: {link}")
-            browser.get(link)
-            browser.refresh()
-            sleep(10)
-            names = browser.find_elements_by_class_name('iUserName')
-            if student_name not in [name.text for name in names]:
-                notReplied.append(link)
-            else:
-                newlyReplied.append(link)
+        threads = [str(title.get_attribute('href'))
+                   for title in table.find_elements_by_tag_name('a')][:-1]
+        links.extend(threads)
 
-        browser.get(FORUM)
-        sleep(3)
+for link in links:
+    if link in alreadyReplied:
+        continue
+    browser.get(link)
+    browser.refresh()
+    sleep(10)
+    names = browser.find_elements_by_class_name('iUserName')
+    try:
+        replyButton = browser.find_element_by_class_name('reply')
+    except NoSuchElementException:
+        replyButton = None
+    if student_name in [name.text for name in names] or \
+       replyButton is None:
+        newlyReplied.append(link)
+    else:
+        notReplied.append(link)
 
 print(notReplied)
 
 with open('pynus_data.csv', 'a') as pynus_data:
-    writer = csv.reader(pynus_data)
-    for link in newlyReplied:
-        writer.writerow(link)
+    csv.writer(pynus_data).writerows([replied] for replied in newlyReplied)
 
 finish()
