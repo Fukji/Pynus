@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.firefox.options import Options
 from time import sleep, time
 
+TIMEOUT = 75
 INDEX = 'https://binusmaya.binus.ac.id/newStudent/#/index'
 LOGIN = 'https://binusmaya.binus.ac.id/login/'
 FORUM = 'https://binusmaya.binus.ac.id/newStudent/#/forum/class'
@@ -18,9 +19,14 @@ XPATHS = {
 }
 
 options = Options()
-options.headless = True
+# options.headless = True
 browser = webdriver.Firefox(options=options)
 
+already_replied = []
+not_replied = []
+newly_replied = []
+unchecked = []
+links = []
 
 def terminate():
     browser.quit()
@@ -28,26 +34,30 @@ def terminate():
 
 
 def slowConnection():
-    print('Your internet connection is currently unstable.')
+    print('Your internet connection is currently unstable')
     terminate()
 
 
-def loadClass(class_name, seconds):
+def loadClass(class_name):
     sleep(1)
     try:
-        WebDriverWait(browser, timeout=seconds).until(
+        WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_class_name(class_name).text != '')
     except TimeoutException:
         slowConnection()
 
 
-def loadXpath(xpath, seconds):
+def loadThread(xpath, iteration = 1):
+    if iteration == 3:
+        return False
     sleep(1)
     try:
-        WebDriverWait(browser, timeout=seconds).until(
+        WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_xpath(xpath).text != '')
     except TimeoutException:
-        slowConnection()
+        browser.refresh()
+        return loadThread(xpath, iteration + 1)
+    return True
 
 
 def main():
@@ -70,27 +80,28 @@ def main():
         browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
         browser.find_element_by_xpath(XPATHS['submit']).click()
 
-        sleep(4)
+        sleep(7)
         currentUrl = browser.current_url
         if currentUrl != INDEX:
+            try:
+                browser.find_element_by_xpath(XPATHS['userID'])
+            except NoSuchElementException:
+                slowConnection()
             print('Your username/password is incorrect!\n')
         else:
             break
 
+    loadClass('user-profile')
     student_profile = browser.find_element_by_class_name('user-profile')
     student_name = student_profile.find_element_by_class_name(
         'student-name').text
     print()
     print(f'Welcome, {student_name}.')
 
-    start_time = time()
     browser.get(FORUM)
-    loadClass('tabledata', 10)
+    browser.refresh()
+    loadClass('tabledata')
 
-    already_replied = []
-    not_replied = []
-    newly_replied = []
-    links = []
     courses = Select(browser.find_element_by_id('ddlCourse'))
 
     pynus_data = open('pynus_data.csv', 'a')
@@ -107,12 +118,12 @@ def main():
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
 
-            loadClass('tabledata', 10)
+            loadClass('tabledata')
 
             topics = Select(browser.find_element_by_id('ddlTopic'))
             topics.select_by_visible_text(topics.options[-1].text)
 
-            loadClass('tabledata', 45)
+            loadClass('tabledata')
 
             table = browser.find_element_by_id('threadtable')
             threads = [str(title.get_attribute('href'))
@@ -125,7 +136,10 @@ def main():
         browser.get(link)
         browser.refresh()
 
-        loadXpath(XPATHS['threadtitle'], 45)
+        if loadThread(XPATHS['threadtitle']) is False:
+            unchecked.append(link)
+            continue
+
         names = browser.find_elements_by_class_name('iUserName')
 
         try:
@@ -139,22 +153,34 @@ def main():
         else:
             not_replied.append(link)
 
+
+if __name__ == '__main__':
+    start_time = time()
+
+    try:
+        main()
+    except (KeyboardInterrupt, SystemExit):
+        print('Process terminated without error.')
+    except:
+        print('Unexpected error:', sys.exc_info()[0])
+
     with open('pynus_data.csv', 'a') as pynus_data:
         csv.writer(pynus_data).writerows(
             [replied] for replied in newly_replied)
 
-    print(f'Checked {len(links)} links and found',
-          f'{len(not_replied)} unreplied.')
+    print(f'Checked {len(links)} links. Found',
+          f'{len(not_replied)} unreplied',
+          f'and {len(unchecked)} unchecked')
 
+    print('UNREPLIED')
     for unreplied in not_replied:
         print(unreplied)
+
+    print('UNCHECKED')
+    for not_checked in unchecked:
+        print(not_checked)
 
     print(f'Process finished in {time()-start_time} seconds.')
     terminate()
 
 
-if __name__ == '__main__':
-    try:
-        main()
-    except:
-        terminate()
