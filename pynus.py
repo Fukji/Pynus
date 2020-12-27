@@ -18,7 +18,7 @@ XPATHS = {
 }
 
 options = Options()
-# options.headless = True
+options.headless = True
 browser = webdriver.Firefox(options=options)
 
 
@@ -28,7 +28,7 @@ def terminate():
 
 
 def slowConnection():
-    print("Your internet connection is currently unstable.")
+    print('Your internet connection is currently unstable.')
     terminate()
 
 
@@ -36,7 +36,7 @@ def loadClass(class_name, seconds):
     sleep(1)
     try:
         WebDriverWait(browser, timeout=seconds).until(
-            lambda f: f.find_element_by_class_name(class_name).text != "")
+            lambda f: f.find_element_by_class_name(class_name).text != '')
     except TimeoutException:
         slowConnection()
 
@@ -45,7 +45,7 @@ def loadXpath(xpath, seconds):
     sleep(1)
     try:
         WebDriverWait(browser, timeout=seconds).until(
-            lambda f: f.find_element_by_xpath(xpath).text != "")
+            lambda f: f.find_element_by_xpath(xpath).text != '')
     except TimeoutException:
         slowConnection()
 
@@ -57,28 +57,31 @@ def main():
     try:
         browser.find_element_by_xpath(XPATHS['userID'])
     except NoSuchElementException:
-        print("Binusmaya is currently unreachable")
+        print('Binusmaya is currently unreachable')
         terminate()
 
-    browser.find_element_by_xpath(XPATHS['userID']).clear()
-    browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
-    browser.find_element_by_xpath(XPATHS['pass']).clear()
-    browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
-    browser.find_element_by_xpath(XPATHS['submit']).click()
+    while True:
+        username = input('Username: ')
+        password = getpass()
 
-    username = input("Username: ")
-    password = getpass()
+        browser.find_element_by_xpath(XPATHS['userID']).clear()
+        browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
+        browser.find_element_by_xpath(XPATHS['pass']).clear()
+        browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
+        browser.find_element_by_xpath(XPATHS['submit']).click()
 
-    sleep(4)
-    currentUrl = browser.current_url
-    if currentUrl != INDEX:
-        print("Your username/password is incorrect!")
-        terminate()
+        sleep(4)
+        currentUrl = browser.current_url
+        if currentUrl != INDEX:
+            print('Your username/password is incorrect!\n')
+        else:
+            break
 
     student_profile = browser.find_element_by_class_name('user-profile')
-    student_name = student_profile.find_element_by_class_name('student-name').text
+    student_name = student_profile.find_element_by_class_name(
+        'student-name').text
     print()
-    print(f"Welcome, {student_name}.")
+    print(f'Welcome, {student_name}.')
 
     start_time = time()
     browser.get(FORUM)
@@ -99,7 +102,7 @@ def main():
 
     for my_course in courses.options:
         courses.select_by_visible_text(my_course.text)
-        sleep(2)
+        sleep(2.5)
         classes = Select(browser.find_element_by_id('ddlClass'))
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
@@ -140,17 +143,18 @@ def main():
         csv.writer(pynus_data).writerows(
             [replied] for replied in newly_replied)
 
-    print(f"Checked {len(links)} links and found {len(notReplied)} unreplied.")
+    print(f'Checked {len(links)} links and found',
+          f'{len(not_replied)} unreplied.')
 
-    for unreplied in notReplied:
+    for unreplied in not_replied:
         print(unreplied)
 
-    print(f"Process finished in {time()-start_time} seconds.")
+    print(f'Process finished in {time()-start_time} seconds.')
     terminate()
 
 
 if __name__ == '__main__':
     try:
         main()
-    except KeyboardInterrupt:
+    except:
         terminate()
