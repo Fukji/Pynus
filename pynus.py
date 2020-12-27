@@ -1,3 +1,4 @@
+import csv
 import sys
 from getpass import getpass
 from selenium import webdriver
@@ -10,7 +11,7 @@ LOGIN = 'https://binusmaya.binus.ac.id/login/'
 FORUM = 'https://binusmaya.binus.ac.id/newStudent/#/forum/class'
 
 options = Options()
-# options.headless = True
+options.headless = True
 browser = webdriver.Firefox(options=options)
 
 
@@ -55,9 +56,16 @@ print(f"Welcome, {student_name}.")
 
 browser.get(FORUM)
 sleep(3)
+
+alreadyReplied = []
+notReplied = []
+newlyReplied = []
 numCourses = len(Select(browser.find_element_by_id('ddlCourse')).options)
 
-notReplied = []
+with open('pynus_data.csv', 'r') as pynus_data:
+    reader = csv.reader(pynus_data)
+    for row in reader:
+        alreadyReplied.append(row[0])
 
 for i in range(numCourses):
     courses = Select(browser.find_element_by_id('ddlCourse'))
@@ -78,6 +86,8 @@ for i in range(numCourses):
         table = browser.find_element_by_id('threadtable')
         links = [str(title.get_attribute('href')) for title in table.find_elements_by_tag_name('a')][:-1]
         for link in links:
+            if link in alreadyReplied:
+                continue
             print(f"Currently checking: {link}")
             browser.get(link)
             browser.refresh()
@@ -85,9 +95,17 @@ for i in range(numCourses):
             names = browser.find_elements_by_class_name('iUserName')
             if student_name not in [name.text for name in names]:
                 notReplied.append(link)
+            else:
+                newlyReplied.append(link)
 
         browser.get(FORUM)
         sleep(3)
 
 print(notReplied)
+
+with open('pynus_data.csv', 'a') as pynus_data:
+    writer = csv.reader(pynus_data)
+    for link in newlyReplied:
+        writer.writerow(link)
+
 finish()
