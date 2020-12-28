@@ -1,3 +1,4 @@
+import argparse
 import csv
 import re
 import sys
@@ -19,10 +20,6 @@ XPATHS = {
     'submit': '//*[@id="login"]/form/p[4]/input',
     'threadtitle': '(//*[@class="iPostSubject"])[2]'
 }
-
-options = Options()
-options.headless = True
-browser = webdriver.Firefox(options=options)
 
 already_replied = []
 not_replied = []
@@ -59,7 +56,7 @@ def loadHomepage():
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_css_selector(
-                '.email-suffix, .aUsername'))
+                '#login_error, .aUsername'))
     except TimeoutException:
         slowConnection()
     sleep(1)
@@ -153,7 +150,9 @@ def main():
         classes = Select(browser.find_element_by_id('ddlClass'))
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
-            print(my_course.text, my_class.text, end=' ')
+
+            if args.debug:
+                print(my_course.text, my_class.text, sep=' - ', end=' ')
 
             load_by_class('tabledata')
 
@@ -166,7 +165,10 @@ def main():
             threads = [str(title.get_attribute('href'))
                        for title in table.find_elements_by_tag_name('a')][:-1]
             links.extend(threads)
-            print(f'Found {len(threads)} links, for a total of {len(links)}.')
+
+            if args.debug:
+                print(f'Found {len(threads)} links, \
+                    for a total of {len(links)}.')
 
     # Check for unreplied forum threads
     for link in links:
@@ -192,10 +194,26 @@ def main():
         else:
             not_replied.append(link)
 
-    print(f'Process finished in {time()-start_time} seconds.')
+    if args.debug:
+        print(f'Process finished in {time()-start_time} seconds.')
 
 
 if __name__ == '__main__':
+    # Parse user inputted arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', help='enable debug mode',
+                        action='store_true')
+    parser.add_argument('-t', '--timeout', help='enable custom timeout')
+    args = parser.parse_args()
+
+    if args.timeout:
+        TIMEOUT = int(args.timeout)
+
+    # Open the browser
+    options = Options()
+    # options.headless = True
+    browser = webdriver.Firefox(options=options)
+
     try:
         main()
     except (KeyboardInterrupt, SystemExit):
