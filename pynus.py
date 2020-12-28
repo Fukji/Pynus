@@ -127,7 +127,7 @@ def main():
 
     # Welcome the user
     student_name = browser.find_element_by_class_name('aUsername').text
-    print('\n', f'Welcome, {student_name}.')
+    print('\n', f'Welcome, {student_name}.', sep='')
 
     # Get the user's courses
     courses = Select(browser.find_element_by_id('ddlCourse'))
@@ -167,8 +167,8 @@ def main():
             links.extend(threads)
 
             if args.debug:
-                print(f'Found {len(threads)} links, \
-                    for a total of {len(links)}.')
+                print(f'Found {len(threads)} links,',
+                      f'for a total of {len(links)}.')
 
     # Check for unreplied forum threads
     for link in links:
@@ -211,7 +211,7 @@ if __name__ == '__main__':
 
     # Open the browser
     options = Options()
-    # options.headless = True
+    options.headless = True
     browser = webdriver.Firefox(options=options)
 
     try:
