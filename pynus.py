@@ -20,13 +20,12 @@ XPATHS = {
 }
 
 options = Options()
-# options.headless = True
+options.headless = True
 browser = webdriver.Firefox(options=options)
 
 already_replied = []
 not_replied = []
 newly_replied = []
-not_checked = []
 links = []
 
 
@@ -40,19 +39,30 @@ def slowConnection():
     terminate()
 
 
-def loadClass(class_name):
+def load_by_class(class_name):
     sleep(1.5)
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_class_name(class_name).text != '')
     except TimeoutException:
         slowConnection()
+    sleep(1.5)
 
 
-def loadThread(xpath, iteration = 1):
+def loadDropdown(id):
+    sleep(1)
+    try:
+        WebDriverWait(browser, timeout=TIMEOUT).until(
+            lambda f: len(Select(browser.find_element_by_id(id)).options) > 0)
+    except TimeoutException:
+        slowConnection()
+    sleep(1)
+
+
+def loadThread(xpath, iteration=1):
     if iteration == 3:
         return False
-    sleep(1.5)
+    sleep(1)
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_xpath(xpath).text != '')
@@ -63,18 +73,18 @@ def loadThread(xpath, iteration = 1):
 
 
 def main():
+    # Open the login page
     browser.get(LOGIN)
-    sleep(3)
+    load_by_class('email-suffix')
 
-    try:
-        browser.find_element_by_xpath(XPATHS['userID'])
-    except NoSuchElementException:
-        print('Binusmaya is currently unreachable')
-        terminate()
-
+    # Prompt user for login info and try to login
     while True:
-        username = input('Username: ')
+        username = input('Username: ').lower()
         password = getpass()
+
+        if username == "" or password == "":
+            print('Username/password must not be blank\n')
+            continue
 
         browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
         browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
@@ -83,62 +93,71 @@ def main():
         sleep(7)
         currentUrl = browser.current_url
         if currentUrl != INDEX:
-            if browser.find_element_by_xpath(
-               XPATHS['userID']).get_attribute('value') == "":
+            try:
+                username_field = browser.find_elements_by_xpath(
+                    XPATHS['userID']).get_attribute('value')
+            except NoSuchElementException:
+                slowConnection()
+
+            if username_field == "":
                 print('Your username/password is incorrect!\n')
             else:
                 slowConnection()
         else:
             break
 
-    loadClass('aUsername')
+    # Open the forum page
+    browser.get(FORUM)
+    browser.refresh()
+    load_by_class('tabledata')
+
+    # Welcome the user
     student_name = browser.find_element_by_class_name('aUsername').text
     print()
     print(f'Welcome, {student_name}.')
 
-    browser.get(FORUM)
-    browser.refresh()
-    loadClass('tabledata')
-
+    # Get the user's courses
     courses = Select(browser.find_element_by_id('ddlCourse'))
 
+    # Create the file pynus_data.csv
     pynus_data = open('pynus_data.csv', 'a')
     pynus_data.close()
+    # Read the content of pynus_data.csv
     with open('pynus_data.csv', 'r') as pynus_data:
         reader = csv.reader(pynus_data)
         for row in reader:
-            already_replied.append(row[0])
+            if row[0] == username:
+                already_replied.append(row[1])
 
     for my_course in courses.options:
         courses.select_by_visible_text(my_course.text)
-        sleep(3)
-        loadClass('tabledata')
+        loadDropdown('ddlClass')
 
         classes = Select(browser.find_element_by_id('ddlClass'))
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
+            print(my_course.text, my_class.text, end='')
 
-            loadClass('tabledata')
+            load_by_class('tabledata')
 
             topics = Select(browser.find_element_by_id('ddlTopic'))
             topics.select_by_visible_text(topics.options[-1].text)
 
-            loadClass('tabledata')
+            load_by_class('tabledata')
 
             table = browser.find_element_by_id('threadtable')
-            threads = [(my_course.text, my_class.text,
-                       str(title.get_attribute('href')))
+            threads = [str(title.get_attribute('href'))
                        for title in table.find_elements_by_tag_name('a')][:-1]
             links.extend(threads)
+            print(f'Found {len(threads)} links, for a total of {len(links)}.')
 
     for link in links:
-        if link[2] in already_replied:
+        if link in already_replied:
             continue
-        browser.get(link[2])
+        browser.get(link)
         browser.refresh()
 
         if loadThread(XPATHS['threadtitle']) is False:
-            not_checked.append(link)
             continue
 
         names = browser.find_elements_by_class_name('iUserName')
@@ -148,9 +167,10 @@ def main():
         except NoSuchElementException:
             replyButton = None
 
+        # Check if the forum is replied, locked or not replied
         if student_name in [name.text for name in names] or \
            replyButton is None:
-            newly_replied.append(link[2])
+            newly_replied.append((username, link))
         else:
             not_replied.append(link)
 
@@ -168,21 +188,14 @@ if __name__ == '__main__':
 
     with open('pynus_data.csv', 'a') as pynus_data:
         csv.writer(pynus_data).writerows(
-            [replied] for replied in newly_replied)
+            [replied[0], replied[1]] for replied in newly_replied)
 
     print(f'Checked {len(links)} links. Found',
-          f'{len(not_replied)} unreplied',
-          f'and {len(not_checked)} unchecked')
+          f'{len(not_replied)} unreplied')
 
     print('UNREPLIED')
     for unreplied in not_replied:
         print(unreplied)
 
-    print('UNCHECKED')
-    for unchecked in not_checked:
-        print(unchecked)
-
     print(f'Process finished in {time()-start_time} seconds.')
     terminate()
-
-
