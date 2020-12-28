@@ -6,8 +6,9 @@ import traceback
 from getpass import getpass
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome.options import Options as copt
+from selenium.webdriver.firefox.options import Options as fopt
 from selenium.webdriver.support.ui import Select, WebDriverWait
-from selenium.webdriver.firefox.options import Options
 from time import sleep, time
 
 TIMEOUT = 75
@@ -52,7 +53,7 @@ def load_by_class(class_name):
 
 # Wait for the home page to load
 def loadHomepage():
-    sleep(5)
+    sleep(1)
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_css_selector(
@@ -151,9 +152,6 @@ def main():
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
 
-            if args.debug:
-                print(my_course.text, my_class.text, sep=' - ', end=' ')
-
             load_by_class('tabledata')
 
             topics = Select(browser.find_element_by_id('ddlTopic'))
@@ -167,7 +165,8 @@ def main():
             links.extend(threads)
 
             if args.debug:
-                print(f'Found {len(threads)} links,',
+                print(f'Checking {my_course.text} - {my_class.text}.',
+                      f'Found {len(threads)} links,',
                       f'for a total of {len(links)}.')
 
     # Check for unreplied forum threads
@@ -203,6 +202,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', help='enable debug mode',
                         action='store_true')
+    parser.add_argument('-b', '--browser', help='enable custom browser')
     parser.add_argument('-t', '--timeout', help='enable custom timeout')
     args = parser.parse_args()
 
@@ -210,9 +210,14 @@ if __name__ == '__main__':
         TIMEOUT = int(args.timeout)
 
     # Open the browser
-    options = Options()
-    options.headless = True
-    browser = webdriver.Firefox(options=options)
+    if args.browser is None or args.browser == "chrome":
+        options = copt()
+        # options.headless = True
+        browser = webdriver.Chrome(options=options)
+    elif args.browser == "firefox":
+        options = fopt()
+        # options.headless = True
+        browser = webdriver.Firefox(options=options)
 
     try:
         main()
