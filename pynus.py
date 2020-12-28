@@ -1,5 +1,6 @@
 import csv
 import sys
+import traceback
 from getpass import getpass
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -25,8 +26,9 @@ browser = webdriver.Firefox(options=options)
 already_replied = []
 not_replied = []
 newly_replied = []
-unchecked = []
+not_checked = []
 links = []
+
 
 def terminate():
     browser.quit()
@@ -34,12 +36,12 @@ def terminate():
 
 
 def slowConnection():
-    print('Your internet connection is currently unstable')
+    print('Your connection to Binusmaya is currently unstable')
     terminate()
 
 
 def loadClass(class_name):
-    sleep(1)
+    sleep(1.5)
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_class_name(class_name).text != '')
@@ -50,7 +52,7 @@ def loadClass(class_name):
 def loadThread(xpath, iteration = 1):
     if iteration == 3:
         return False
-    sleep(1)
+    sleep(1.5)
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_xpath(xpath).text != '')
@@ -74,27 +76,23 @@ def main():
         username = input('Username: ')
         password = getpass()
 
-        browser.find_element_by_xpath(XPATHS['userID']).clear()
         browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
-        browser.find_element_by_xpath(XPATHS['pass']).clear()
         browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
         browser.find_element_by_xpath(XPATHS['submit']).click()
 
         sleep(7)
         currentUrl = browser.current_url
         if currentUrl != INDEX:
-            try:
-                browser.find_element_by_xpath(XPATHS['userID'])
-            except NoSuchElementException:
+            if browser.find_element_by_xpath(
+               XPATHS['userID']).get_attribute('value') == "":
+                print('Your username/password is incorrect!\n')
+            else:
                 slowConnection()
-            print('Your username/password is incorrect!\n')
         else:
             break
 
-    loadClass('user-profile')
-    student_profile = browser.find_element_by_class_name('user-profile')
-    student_name = student_profile.find_element_by_class_name(
-        'student-name').text
+    loadClass('aUsername')
+    student_name = browser.find_element_by_class_name('aUsername').text
     print()
     print(f'Welcome, {student_name}.')
 
@@ -113,7 +111,9 @@ def main():
 
     for my_course in courses.options:
         courses.select_by_visible_text(my_course.text)
-        sleep(2.5)
+        sleep(3)
+        loadClass('tabledata')
+
         classes = Select(browser.find_element_by_id('ddlClass'))
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
@@ -126,18 +126,19 @@ def main():
             loadClass('tabledata')
 
             table = browser.find_element_by_id('threadtable')
-            threads = [str(title.get_attribute('href'))
+            threads = [(my_course.text, my_class.text,
+                       str(title.get_attribute('href')))
                        for title in table.find_elements_by_tag_name('a')][:-1]
             links.extend(threads)
 
     for link in links:
-        if link in already_replied:
+        if link[2] in already_replied:
             continue
-        browser.get(link)
+        browser.get(link[2])
         browser.refresh()
 
         if loadThread(XPATHS['threadtitle']) is False:
-            unchecked.append(link)
+            not_checked.append(link)
             continue
 
         names = browser.find_elements_by_class_name('iUserName')
@@ -149,7 +150,7 @@ def main():
 
         if student_name in [name.text for name in names] or \
            replyButton is None:
-            newly_replied.append(link)
+            newly_replied.append(link[2])
         else:
             not_replied.append(link)
 
@@ -162,6 +163,7 @@ if __name__ == '__main__':
     except (KeyboardInterrupt, SystemExit):
         print('Process terminated without error.')
     except:
+        traceback.print_exc()
         print('Unexpected error:', sys.exc_info()[0])
 
     with open('pynus_data.csv', 'a') as pynus_data:
@@ -170,15 +172,15 @@ if __name__ == '__main__':
 
     print(f'Checked {len(links)} links. Found',
           f'{len(not_replied)} unreplied',
-          f'and {len(unchecked)} unchecked')
+          f'and {len(not_checked)} unchecked')
 
     print('UNREPLIED')
     for unreplied in not_replied:
         print(unreplied)
 
     print('UNCHECKED')
-    for not_checked in unchecked:
-        print(not_checked)
+    for unchecked in not_checked:
+        print(unchecked)
 
     print(f'Process finished in {time()-start_time} seconds.')
     terminate()
