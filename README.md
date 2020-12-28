@@ -7,7 +7,7 @@ Pynus uses a portable framework called Selenium. Use the package manager [pip3](
 ```bash
 pip3 install selenium
 ```
-The current version of Pynus only supports web browsers listed below. Before running the program, make sure that compatible browser and the respective driver has been properly installed.
+The current version of Pynus only supports web browsers listed below. Before running the program, make sure that compatible browser and the respective driver has been properly installed and is in your PATH.
 Web Browser   | Driver
 ------------- | -------------
 [Firefox](https://www.mozilla.org/en-US/firefox/new/)       | [GeckoDriver](https://github.com/mozilla/geckodriver/releases)  
