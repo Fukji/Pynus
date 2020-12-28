@@ -1,5 +1,5 @@
 # Pynus - Experimental
-This is an **experimental** version of Pynus which contains the latest and mostly untested features. Pynus is a [python3](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view their unfinished assignments & unreplied forums. 
+This is the **experimental** version of Pynus which contains the latest and mostly untested features. Pynus is a [python3](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view their unfinished assignments & unreplied forums. 
 
 ## Installation
 Pynus uses a portable framework called Selenium. Use the package manager [pip3](https://pip.pypa.io/en/stable/) to install Selenium.
