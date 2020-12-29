@@ -217,14 +217,14 @@ if __name__ == '__main__':
     if args.browser is None or args.browser == "chrome":
         options = copt()
         options.headless = True
-        path = pyderman.install(browser=pyderman.chrome, verbose=True,
+        path = pyderman.install(browser=pyderman.chrome, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
         browser = webdriver.Chrome(executable_path=path, options=options)
     elif args.browser == "firefox":
         options = fopt()
         options.headless = True
-        path = pyderman.install(browser=pyderman.firefox, verbose=True,
+        path = pyderman.install(browser=pyderman.firefox, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
         browser = webdriver.Firefox(executable_path=path, options=options)
@@ -234,8 +234,9 @@ if __name__ == '__main__':
     except (KeyboardInterrupt, SystemExit):
         print('Process terminated without error.')
     except:
-        traceback.print_exc()
-        print('Unexpected error:', sys.exc_info()[0])
+        if args.debug:
+            traceback.print_exc()
+        print('Unexpected error occured:', sys.exc_info()[0])
 
     with open('pynus_data.csv', 'a') as pynus_data:
         csv.writer(pynus_data).writerows(
