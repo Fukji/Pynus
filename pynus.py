@@ -1,6 +1,7 @@
 import argparse
 import csv
 import re
+import pyderman
 import sys
 import traceback
 from getpass import getpass
@@ -216,11 +217,17 @@ if __name__ == '__main__':
     if args.browser is None or args.browser == "chrome":
         options = copt()
         options.headless = True
-        browser = webdriver.Chrome(options=options)
+        path = pyderman.install(browser=pyderman.chrome, verbose=True,
+                                chmod=True, overwrite=False, version=None,
+                                filename=None, return_info=False)
+        browser = webdriver.Chrome(executable_path=path, options=options)
     elif args.browser == "firefox":
         options = fopt()
         options.headless = True
-        browser = webdriver.Firefox(options=options)
+        path = pyderman.install(browser=pyderman.firefox, verbose=True,
+                                chmod=True, overwrite=False, version=None,
+                                filename=None, return_info=False)
+        browser = webdriver.Firefox(executable_path=path, options=options)
 
     try:
         main()
