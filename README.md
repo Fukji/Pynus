@@ -7,11 +7,12 @@ Pynus uses frameworks called Selenium and Pyderman. Use the package manager [pip
 ```bash
 pip3 install selenium pyderman
 ```
+
 The current version of Pynus only supports web browsers listed below. Before running the program, make sure that compatible browser has been properly installed.
-Web Browser
--------------
-[Chrome](https://www.google.com/chrome/)
-[Firefox](https://www.mozilla.org/en-US/firefox/new/)
+Web Browser   |
+------------- |
+[Chrome](https://www.google.com/chrome/)        |
+[Firefox](https://www.mozilla.org/en-US/firefox/new/)       |
 
 ## Usage
 
