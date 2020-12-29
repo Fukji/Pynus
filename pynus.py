@@ -169,6 +169,9 @@ def main():
                       f'Found {len(threads)} links,',
                       f'for a total of {len(links)}.')
 
+    if args.debug:
+        print(f'Link scraping finished in: {time()-start_time} seconds.')
+
     # Check for unreplied forum threads
     for link in links:
         if link in already_replied:
@@ -212,11 +215,11 @@ if __name__ == '__main__':
     # Open the browser
     if args.browser is None or args.browser == "chrome":
         options = copt()
-        # options.headless = True
+        options.headless = True
         browser = webdriver.Chrome(options=options)
     elif args.browser == "firefox":
         options = fopt()
-        # options.headless = True
+        options.headless = True
         browser = webdriver.Firefox(options=options)
 
     try:
