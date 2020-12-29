@@ -6,7 +6,11 @@ import sys
 import traceback
 from getpass import getpass
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+	NoSuchElementException,
+	StaleElementReferenceException,
+	TimeoutException
+)
 from selenium.webdriver.chrome.options import Options as copt
 from selenium.webdriver.firefox.options import Options as fopt
 from selenium.webdriver.support.ui import Select, WebDriverWait
@@ -49,6 +53,8 @@ def load_by_class(class_name):
             lambda f: f.find_element_by_class_name(class_name).text != '')
     except TimeoutException:
         slowConnection()
+    except StaleElementReferenceException:
+    	load_by_class(class_name)
     sleep(1.5)
 
 
@@ -153,6 +159,7 @@ def main():
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
 
+            loadDropdown('ddlTopic')
             load_by_class('tabledata')
 
             topics = Select(browser.find_element_by_id('ddlTopic'))
@@ -216,14 +223,15 @@ if __name__ == '__main__':
     # Open the browser
     if args.browser is None or args.browser == "chrome":
         options = copt()
-        options.headless = True
+        options.add_argument('--headless')
+        options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
         browser = webdriver.Chrome(executable_path=path, options=options)
     elif args.browser == "firefox":
         options = fopt()
-        options.headless = True
+        options.add_argument('--headless')
         path = pyderman.install(browser=pyderman.firefox, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
@@ -238,7 +246,7 @@ if __name__ == '__main__':
             traceback.print_exc()
         print('Unexpected error occured:', sys.exc_info()[0])
 
-    with open('pynus_data.csv', 'a') as pynus_data:
+    with open('pynus_data.csv', 'a', newline='') as pynus_data:
         csv.writer(pynus_data).writerows(
             [replied[0], replied[1]] for replied in newly_replied)
 
