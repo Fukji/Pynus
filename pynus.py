@@ -333,6 +333,7 @@ def main():
           f'{len(not_replied)} unreplied/unchecked')
 
     print_thread_list()
+    terminate()
 
 
 if __name__ == '__main__':
