@@ -266,7 +266,7 @@ if __name__ == '__main__':
             [replied[0], replied[1]] for replied in newly_replied)
 
     print(f'Checked {len(links)} links. Found',
-          f'{len(not_replied)} unreplied')
+          f'{len(not_replied)} unreplied/unchecked')
 
     for unreplied in not_replied:
         if unreplied['status'] == 'unchecked':
