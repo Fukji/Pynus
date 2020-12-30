@@ -7,9 +7,9 @@ import traceback
 from getpass import getpass
 from selenium import webdriver
 from selenium.common.exceptions import (
-	NoSuchElementException,
-	StaleElementReferenceException,
-	TimeoutException
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException
 )
 from selenium.webdriver.chrome.options import Options as copt
 from selenium.webdriver.firefox.options import Options as fopt
@@ -24,7 +24,8 @@ XPATHS = {
     'userID': '//*[@id="login"]/form/div/label/input',
     'pass': '//*[@id="login"]/form/p[1]/span/input',
     'submit': '//*[@id="login"]/form/p[4]/input',
-    'threadtitle': '(//*[@class="iPostSubject"])[2]'
+    'threadtitle': '(//*[@class="iPostSubject"])[2]',
+    'threaddate': '(//*[@class="iPostDate"])[2]'
 }
 
 already_replied = []
@@ -47,15 +48,15 @@ def slowConnection():
 
 # Wait for an element to load based on the class name
 def load_by_class(class_name):
-    sleep(1.5)
+    sleep(1)
     try:
         WebDriverWait(browser, timeout=TIMEOUT).until(
             lambda f: f.find_element_by_class_name(class_name).text != '')
     except TimeoutException:
         slowConnection()
     except StaleElementReferenceException:
-    	load_by_class(class_name)
-    sleep(1.5)
+        load_by_class(class_name)
+    sleep(1)
 
 
 # Wait for the home page to load
@@ -168,7 +169,8 @@ def main():
             load_by_class('tabledata')
 
             table = browser.find_element_by_id('threadtable')
-            threads = [str(title.get_attribute('href'))
+            threads = [[my_course.text, my_class.text,
+                       str(title.get_attribute('href'))]
                        for title in table.find_elements_by_tag_name('a')][:-1]
             links.extend(threads)
 
@@ -182,14 +184,21 @@ def main():
 
     # Check for unreplied forum threads
     for link in links:
-        if link in already_replied:
+        if link[2] in already_replied:
             continue
-        browser.get(link)
+        browser.get(link[2])
         browser.refresh()
 
         if loadThread(XPATHS['threadtitle']) is False:
+            not_replied.append({
+                'course': link[0] + ' - ' + link[1],
+                'source': link[2],
+                'status': 'unchecked'
+            })
             continue
 
+        title = browser.find_element_by_xpath(XPATHS['threadtitle']).text
+        posted = browser.find_element_by_xpath(XPATHS['threaddate']).text
         names = browser.find_elements_by_class_name('iUserName')
 
         # Try to find a reply button in the thread
@@ -200,9 +209,15 @@ def main():
 
         if student_name in [name.text for name in names] or \
            replyButton is None:
-            newly_replied.append((username, link))
+            newly_replied.append((username, link[2]))
         else:
-            not_replied.append(link)
+            not_replied.append({
+                'title': title,
+                'course': link[0] + ' - ' + link[1],
+                'posted': posted,
+                'source': link[2],
+                'status': 'unreplied'
+            })
 
     if args.debug:
         print(f'Process finished in {time()-start_time} seconds.')
@@ -213,8 +228,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', help='enable debug mode',
                         action='store_true')
-    parser.add_argument('-b', '--browser', help='enable custom browser')
-    parser.add_argument('-t', '--timeout', help='enable custom timeout')
+    parser.add_argument('-b', '--browser', help='select custom browser')
+    parser.add_argument('-t', '--timeout', help='set custom timeout')
     args = parser.parse_args()
 
     if args.timeout:
@@ -253,8 +268,14 @@ if __name__ == '__main__':
     print(f'Checked {len(links)} links. Found',
           f'{len(not_replied)} unreplied')
 
-    print('UNREPLIED')
     for unreplied in not_replied:
-        print(unreplied)
+        if unreplied['status'] == 'unchecked':
+            print('\n', f'Course: {unreplied["course"]}', sep='')
+        else:
+            print('\n', f'{unreplied["title"]}', sep='')
+            print(f'Course: {unreplied["course"]}')
+            print(f'Posted: {unreplied["posted"]}')
+        print(f'Source: {unreplied["source"]}')
+        print(f'Status: {unreplied["status"]}')
 
     terminate()
