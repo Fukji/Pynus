@@ -21,10 +21,11 @@ python3 pynus.py [-h] [-d] [-b BROWSER] [-t TIMEOUT]
 | `-h`  | `--help`    |                | Show help             |
 | `-d`  | `--debug`   |                | Enable debug mode     |
 | `-b`  | `--browser` | `chrome`       | Select custom browser |
+| `-l`  | `--limit`   | `7`            | Set custom day limit
 | `-t`  | `--timeout` | `75`           | Set custom timeout    |
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
-[MIT](https://github.com/Fukji/Pynus/blob/main/license.txt)
+[MIT](https://github.com/Fukji/Pynus/blob/main/LICENSE)
