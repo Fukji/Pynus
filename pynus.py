@@ -269,9 +269,11 @@ def check_link():
 # Print unreplied/unchecked threads
 def print_thread_list():
     time_limit = (datetime.now() - timedelta(days=limit)).date()
+    printed = False
 
     for unreplied in not_replied:
         if unreplied['status'] == 'unchecked':
+            printed = True
             print('\n', f'Course: {unreplied["course"]}', sep='')
             print(f'Source: {unreplied["source"]}')
             print(f'Status: {unreplied["status"]}')
@@ -279,11 +281,15 @@ def print_thread_list():
             time_posted = datetime.strptime(
                 unreplied['posted'], '%d/%m/%Y %H:%M').date()
             if time_posted >= time_limit:
+                printed = True
                 print('\n', f'{unreplied["title"]}', sep='')
                 print(f'Course: {unreplied["course"]}')
                 print(f'Posted: {unreplied["posted"]}')
                 print(f'Source: {unreplied["source"]}')
                 print(f'Status: {unreplied["status"]}')
+
+    if printed is False:
+        print(f'All threads from the past {limit} days has been replied.')
 
 
 def main():
@@ -329,9 +335,10 @@ def main():
         csv.writer(pynus_data).writerows(
             [replied[0], replied[1]] for replied in newly_replied)
 
-    print(f'Checked {len(links)} links. Found',
-          f'{len(not_replied)} unreplied/unchecked')
+    print(f'Checked {len(links)} links.'
+          f'Found {len(not_replied)} unreplied/unchecked')
 
+    print('\n', f'Displaying threads within your time range:', sep='')
     print_thread_list()
     terminate()
 
