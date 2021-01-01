@@ -336,7 +336,7 @@ def main():
             [replied[0], replied[1]] for replied in newly_replied)
 
     print(f'Checked {len(links)} links.'
-          f'Found {len(not_replied)} unreplied/unchecked')
+          f'Found {len(not_replied)} unreplied/unchecked.')
 
     print('\n', f'Displaying threads within your time range:', sep='')
     print_thread_list()
