@@ -1,11 +1,15 @@
 # Pynus
-Pynus is a [python3](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view their unfinished assignments & unreplied forums.
+Pynus is a [python](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view unreplied forum threads.
 
 ## Installation
-Pynus uses frameworks called Selenium and Pyderman. Use the package manager [pip3](https://pip.pypa.io/en/stable/) to install them.
+Pynus uses frameworks called Selenium and Pyderman. Use the package manager [pip](https://pip.pypa.io/en/stable/) to install them.
 
 ```bash
+# If python is set to python 2.x
 pip3 install selenium pyderman
+
+# If python is set to python 3.x
+pip install selenium pyderman
 ```
 
 The current version of Pynus only supports [Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser. Before running the program, make sure that compatible browser has been properly installed.
@@ -13,7 +17,11 @@ The current version of Pynus only supports [Chrome](https://www.google.com/chrom
 ## Usage and Arguments
 ### Usage
 ```bash
-python3 pynus.py [-h] [-d] [-b BROWSER] [-t TIMEOUT]
+# If python is set to python 2.x
+python3 pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
+
+# If python is set to python 3.x
+python3 pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
 ```
 ### Arguments
 | Short | Long        | Default        | Description           |
