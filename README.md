@@ -21,7 +21,7 @@ The current version of Pynus only supports [Chrome](https://www.google.com/chrom
 python3 pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
 
 # If python is set to python 3.x
-python3 pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
+python pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
 ```
 ### Arguments
 | Short | Long        | Default        | Description           |
