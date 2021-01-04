@@ -65,6 +65,19 @@ def setup_browser(browser_name):
     global browser
     if browser_name == 'chrome':
         options = copt()
+        prefs = {'profile.default_content_setting_values': {
+                 'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
+                 'notifications': 2, 'auto_select_certificate': 2,
+                 'fullscreen': 2, 'mouselock': 2, 'mixed_script': 2,
+                 'media_stream': 2, 'media_stream_mic': 2,
+                 'media_stream_camera': 2, 'protocol_handlers': 2,
+                 'ppapi_broker': 2, 'automatic_downloads': 2, 'midi_sysex': 2,
+                 'push_messaging': 2, 'ssl_cert_decisions': 2,
+                 'metro_switch_to_desktop': 2, 'protected_media_identifier': 2,
+                 'app_banner': 2, 'site_engagement': 2, 'durable_storage': 2}}
+        options.add_experimental_option('prefs', prefs)
+        options.add_argument("disable-infobars")
+        options.add_argument("--disable-extensions")
         options.add_argument('--headless')
         options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
@@ -324,7 +337,9 @@ def main():
     try:
         check_link()
     except (KeyboardInterrupt, SystemExit):
-        print('Process terminated without error.')
+        print('\nProcess terminated without error.')
+    except TimeoutException:
+        slow_connection()
     except:
         if debug:
             traceback.print_exc()
@@ -335,7 +350,7 @@ def main():
         csv.writer(pynus_data).writerows(
             [replied[0], replied[1]] for replied in newly_replied)
 
-    print(f'Checked {len(links)} links.'
+    print(f'Checked {len(links)} links.',
           f'Found {len(not_replied)} unreplied/unchecked.')
 
     print('\n', f'Displaying threads within your time range:', sep='')
