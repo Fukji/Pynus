@@ -1,5 +1,5 @@
 # Pynus
-Pynus is a [python](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view unreplied forum threads.
+Pynus is a [python](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view unreplied forum threads and to join online class automatically.
 
 ## Installation
 Pynus uses frameworks called Selenium and Pyderman. Use the package manager [pip](https://pip.pypa.io/en/stable/) to install them.
@@ -12,16 +12,16 @@ pip3 install selenium pyderman
 pip install selenium pyderman
 ```
 
-The current version of Pynus only supports [Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser. Before running the program, make sure that compatible browser has been properly installed.
+The current version of Pynus only supports [Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser. Before running the program, make sure that compatible browser has been properly installed. To use class mode, please make sure that Zoom has been installed on your system.
 
 ## Usage and Arguments
 ### Usage
 ```bash
 # If python is set to python 2.x
-python3 pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
+python3 pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT] [-m MODE]
 
 # If python is set to python 3.x
-python pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
+python pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT] [-m MODE]
 ```
 ### Arguments
 | Short | Long        | Default        | Description           |
@@ -29,8 +29,9 @@ python pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT]
 | `-h`  | `--help`    |                | Show help             |
 | `-d`  | `--debug`   |                | Enable debug mode     |
 | `-b`  | `--browser` | `chrome`       | Select custom browser |
-| `-l`  | `--limit`   | `7`            | Set custom day limit
+| `-l`  | `--limit`   | `7`            | Set custom day limit  |
 | `-t`  | `--timeout` | `75`           | Set custom timeout    |
+| `-m`  | `--Mode`    | `forum`        | Choose mode           |
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
