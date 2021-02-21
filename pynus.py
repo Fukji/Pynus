@@ -1,7 +1,9 @@
 import argparse
+import click
 import csv
 import re
 import pyderman
+import pyautogui as pyg
 import sys
 import traceback
 from datetime import datetime, timedelta
@@ -17,15 +19,21 @@ from selenium.webdriver.firefox.options import Options as fopt
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from time import sleep, time
 
+VERSION = 'v0.2.0'
+BUILD = '21022021'
+
 INDEX = 'https://binusmaya.binus.ac.id/newStudent/'
 LOGIN = 'https://binusmaya.binus.ac.id/login/'
 FORUM = 'https://binusmaya.binus.ac.id/newStudent/#/forum/class'
+MYCLASS_INDEX = 'https://myclass.apps.binus.ac.id/Home/Index'
+MYCLASS_LOGIN = 'https://myclass.apps.binus.ac.id/Auth'
 XPATHS = {
     'userID': '//*[@id="login"]/form/div/label/input',
     'pass': '//*[@id="login"]/form/p[1]/span/input',
     'submit': '//*[@id="login"]/form/p[4]/input',
     'threadtitle': '(//*[@class="iPostSubject"])[2]',
-    'threaddate': '(//*[@class="iPostDate"])[2]'
+    'threaddate': '(//*[@class="iPostDate"])[2]',
+    'submit_myclass': '//*[@id="login"]/form/p[4]/button'
 }
 
 browser = None
@@ -78,7 +86,10 @@ def setup_browser(browser_name):
         options.add_experimental_option('prefs', prefs)
         options.add_argument("disable-infobars")
         options.add_argument("--disable-extensions")
-        options.add_argument('--headless')
+        options.add_argument("--use-fake-ui-for-media-stream")
+        options.add_argument("user-data-dir=./profile")
+        options.add_argument("profile-directory=Pynus-chrome")
+        # options.add_argument('--headless')
         options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
                                 chmod=True, overwrite=False, version=None,
@@ -90,7 +101,9 @@ def setup_browser(browser_name):
         path = pyderman.install(browser=pyderman.firefox, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
-        browser = webdriver.Firefox(executable_path=path, options=options)
+        profile = webdriver.FirefoxProfile('./profile/zxqcqwmr.Pynus-firefox')
+        browser = webdriver.Firefox(executable_path=path, options=options,
+                                    firefox_profile=profile)
 
 
 # Alert the user regarding bad connection
@@ -112,6 +125,18 @@ def load_by_class(class_name):
     sleep(1)
 
 
+def load_by_id(idx):
+    sleep(1)
+    try:
+        WebDriverWait(browser, timeout=timeout).until(
+            lambda f: f.find_element_by_id(idx).text != '')
+    except TimeoutException:
+        slow_connection()
+    except StaleElementReferenceException:
+        load_by_id(idx)
+    sleep(1)
+
+
 # Wait for the home page to load
 def load_homepage():
     sleep(1)
@@ -125,11 +150,11 @@ def load_homepage():
 
 
 # Wait for dropdown menu to load based on the id
-def load_dropdown(id):
+def load_dropdown(idx):
     sleep(1)
     try:
         WebDriverWait(browser, timeout=timeout).until(
-            lambda f: len(Select(browser.find_element_by_id(id)).options) > 0)
+            lambda f: len(Select(browser.find_element_by_id(idx)).options) > 0)
     except TimeoutException:
         slow_connection()
     sleep(1)
@@ -164,6 +189,9 @@ def check_link():
         if username == "" or password == "":
             print('Username/password must not be blank\n')
             continue
+
+        browser.find_element_by_xpath(XPATHS['userID']).clear()
+        browser.find_element_by_xpath(XPATHS['pass']).clear()
 
         browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
         browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
@@ -279,6 +307,95 @@ def check_link():
         print(f'Process finished in {time()-start_time} seconds.')
 
 
+def fetch_meetings():
+    browser.get(MYCLASS_INDEX)
+    load_by_id('studentViconList')
+    classes = browser.find_element_by_id('studentViconList')
+
+    meeting_date = [str(date.text) for date
+                    in classes.find_elements_by_class_name('iDate')[1:]]
+    meeting_time = [re.findall('[0-9][0-9]:[0-9][0-9]:[0-9][0-9]',
+                    time.text) for time
+                    in classes.find_elements_by_class_name('iTime')[1:]]
+    meeting_link = [str(link.get_attribute('href')) for link
+                    in classes.find_elements_by_tag_name('a')]
+
+    meetings = []
+    for i in range(len(meeting_link)):
+        time = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][0],
+                                 '%d %b %Y %H:%M:%S') + timedelta(minutes=-20)
+        endtime = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][1],
+                                    '%d %b %Y %H:%M:%S')
+        meetings.append([time, endtime, meeting_link[i]])
+    return meetings
+
+
+def join_meeting(meeting):
+    if meeting[0] < datetime.now():
+        wait_time = 0
+    else:
+        wait_time = (meeting[0] - datetime.now().replace(
+                     microsecond=0)).total_seconds()
+
+    print(f'Class starting in {wait_time} seconds')
+    sleep(wait_time)
+    browser.get(meeting[2])
+
+    wait_time = (meeting[1] - datetime.now()).total_seconds()
+    sleep(wait_time)
+
+
+def class_standy():
+    browser.get(MYCLASS_LOGIN)
+    load_by_class('email-suffix')
+
+    # Prompt user for login info and try to login
+    while True:
+        username = input('Username: ').lower()
+        password = getpass()
+
+        if username == "" or password == "":
+            print('Username/password must not be blank\n')
+            continue
+
+        browser.find_element_by_xpath(XPATHS['userID']).clear()
+        browser.find_element_by_xpath(XPATHS['pass']).clear()
+
+        browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
+        browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
+        browser.find_element_by_xpath(XPATHS['submit_myclass']).click()
+
+        password = ''
+        load_homepage()
+        currentUrl = browser.current_url
+        if re.match('^' + MYCLASS_INDEX, currentUrl):
+            break
+
+        login_error = browser.find_element_by_id('login_error')
+
+        print(login_error.text)
+
+        if login_error.text != "":
+            print('Your username/password is incorrect!\n')
+        else:
+            slow_connection()
+
+    start = time()
+    meetings = fetch_meetings()
+
+    if debug:
+        for start_time, end_time, link in meetings:
+            print(start_time, end_time, link)
+
+    while True:
+        if len(meetings) == 0 and time() - start >= 5400:
+            meetings = fetch_meetings()
+            start = time()
+        else:
+            join_meeting(meetings[0])
+            meetings = fetch_meetings()
+
+
 # Print unreplied/unchecked threads
 def print_thread_list():
     time_limit = (datetime.now() - timedelta(days=limit)).date()
@@ -306,6 +423,7 @@ def print_thread_list():
 
 
 def main():
+
     # Parse user inputted arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', help='enable debug mode',
@@ -316,6 +434,8 @@ def main():
                         help='limit output')
     parser.add_argument('-t', '--timeout', default=75, type=positive_int,
                         help='set custom timeout')
+    parser.add_argument('-m', '--mode', default='forum',
+                        help='choose mode')
     args = parser.parse_args()
 
     # Change global variable based on argument value
@@ -323,6 +443,10 @@ def main():
     timeout = args.timeout
     debug = args.debug
     limit = args.limit
+
+    # Print version info
+    if debug:
+        print(f'Pynus {VERSION} build {BUILD}')
 
     # Setup the browser
     if args.browser.lower() == 'chrome':
@@ -335,7 +459,13 @@ def main():
 
     # Fetch and check the links
     try:
-        check_link()
+        if args.mode == 'forum':
+            check_link()
+        elif args.mode == 'class':
+            class_standy()
+        else:
+            print('Invalid mode, running in forum checking mode')
+            check_link()
     except (KeyboardInterrupt, SystemExit):
         print('\nProcess terminated without error.')
     except TimeoutException:
@@ -346,15 +476,17 @@ def main():
         print('Unexpected error occured:', sys.exc_info()[0])
 
     # Write user's data to csv file
-    with open('pynus_data.csv', 'a', newline='') as pynus_data:
-        csv.writer(pynus_data).writerows(
-            [replied[0], replied[1]] for replied in newly_replied)
+    if args.mode == 'forum':
+        with open('pynus_data.csv', 'a', newline='') as pynus_data:
+            csv.writer(pynus_data).writerows(
+                [replied[0], replied[1]] for replied in newly_replied)
 
-    print(f'Checked {len(links)} links.',
-          f'Found {len(not_replied)} unreplied/unchecked.')
+        print(f'Checked {len(links)} links.',
+              f'Found {len(not_replied)} unreplied/unchecked.')
 
-    print('\n', f'Displaying threads within your time range:', sep='')
-    print_thread_list()
+        print('\n', f'Displaying threads within your time range:', sep='')
+        print_thread_list()
+
     terminate()
 
 
