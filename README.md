@@ -31,7 +31,7 @@ python pynus.py [-h] [-d] [-b BROWSER] [-l LIMIT] [-t TIMEOUT] [-m MODE]
 | `-b`  | `--browser` | `chrome`       | Select custom browser |
 | `-l`  | `--limit`   | `7`            | Set custom day limit  |
 | `-t`  | `--timeout` | `75`           | Set custom timeout    |
-| `-m`  | `--Mode`    | `forum`        | Choose mode           |
+| `-m`  | `--mode`    | `forum`        | Choose mode           |
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
