@@ -18,7 +18,7 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from time import sleep, time
 
 VERSION = 'v0.2.0'
-BUILD = '21022021'
+BUILD = '22022021'
 
 INDEX = 'https://binusmaya.binus.ac.id/newStudent/'
 LOGIN = 'https://binusmaya.binus.ac.id/login/'
@@ -305,6 +305,12 @@ def check_link():
         print(f'Process finished in {time()-start_time} seconds.')
 
 
+def logout():
+    browser.find_element_by_class_name('expand-action').click()
+    sleep(1)
+    browser.find_element_by_id('logout').click()
+
+
 def countdown(time_left):
     while time_left:
         print('Your class is starting in',
@@ -314,8 +320,14 @@ def countdown(time_left):
     print('Your class is starting now. Joining the Zoom meeting...')
 
 
-def fetch_meetings():
-    browser.get(MYCLASS_INDEX)
+def fetch_meetings(username, password):
+    browser.get(MYCLASS_LOGIN)
+    load_by_class('email-suffix')
+
+    browser.find_element_by_xpath(XPATHS['userID']).send_keys(username)
+    browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
+    browser.find_element_by_xpath(XPATHS['submit_myclass']).click()
+
     load_by_id('studentViconList')
     classes = browser.find_element_by_id('studentViconList')
 
@@ -324,16 +336,21 @@ def fetch_meetings():
     meeting_time = [re.findall('[0-9][0-9]:[0-9][0-9]:[0-9][0-9]',
                     time.text) for time
                     in classes.find_elements_by_class_name('iTime')[1:]]
-    meeting_link = [str(link.get_attribute('href')) for link
-                    in classes.find_elements_by_tag_name('a')]
+    meeting_link = classes.find_elements_by_class_name('iAction')[1:]
 
     meetings = []
     for i in range(len(meeting_link)):
+        if meeting_link[i].text != '-':
+            continue
         time = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][0],
                                  '%d %b %Y %H:%M:%S') + timedelta(minutes=-10)
         endtime = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][1],
                                     '%d %b %Y %H:%M:%S')
-        meetings.append([time, endtime, meeting_link[i]])
+        link = str(meeting_link[i].find_element_by_tag_name(
+                   'a').get_attribute('href'))
+        meetings.append([time, endtime, link])
+
+    logout()
     return meetings
 
 
@@ -372,7 +389,6 @@ def class_standy():
         browser.find_element_by_xpath(XPATHS['pass']).send_keys(password)
         browser.find_element_by_xpath(XPATHS['submit_myclass']).click()
 
-        password = ''
         load_homepage()
         currentUrl = browser.current_url
         if re.match('^' + MYCLASS_INDEX, currentUrl):
@@ -387,8 +403,10 @@ def class_standy():
         else:
             slow_connection()
 
+    logout()
+
     start = time()
-    meetings = fetch_meetings()
+    meetings = fetch_meetings(username, password)
 
     if debug:
         for start_time, end_time, link in meetings:
@@ -396,11 +414,11 @@ def class_standy():
 
     while True:
         if len(meetings) == 0 and time() - start >= 5400:
-            meetings = fetch_meetings()
+            meetings = fetch_meetings(username, password)
             start = time()
-        else:
+        elif len(meetings) > 0:
             join_meeting(meetings[0])
-            meetings = fetch_meetings()
+            meetings = fetch_meetings(username, password)
 
 
 # Print unreplied/unchecked threads
