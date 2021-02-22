@@ -1,9 +1,7 @@
 import argparse
-import click
 import csv
 import re
 import pyderman
-import pyautogui as pyg
 import sys
 import traceback
 from datetime import datetime, timedelta
