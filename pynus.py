@@ -13,6 +13,7 @@ from selenium.common.exceptions import (
     TimeoutException
 )
 from selenium.webdriver.chrome.options import Options as copt
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options as fopt
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from time import sleep, time
@@ -306,9 +307,13 @@ def check_link():
 
 
 def logout():
-    browser.find_element_by_class_name('expand-action').click()
-    sleep(1)
-    browser.find_element_by_id('logout').click()
+    menu = browser.find_element_by_class_name('expand-action')
+    logout_button = browser.find_element_by_id('logout')
+    actions = ActionChains(browser)
+    actions.click(menu)
+    actions.pause(1)
+    actions.click(logout_button)
+    actions.perform()
 
 
 def countdown(time_left):
