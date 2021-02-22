@@ -89,7 +89,7 @@ def setup_browser(browser_name):
         options.add_argument("--use-fake-ui-for-media-stream")
         options.add_argument("user-data-dir=./profile/Pynus-chrome")
         options.add_argument("profile-directory=Profile 1")
-        # options.add_argument('--headless')
+        options.add_argument('--headless')
         options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
                                 chmod=True, overwrite=False, version=None,
