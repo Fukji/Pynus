@@ -89,7 +89,7 @@ def setup_browser(browser_name):
         options.add_argument("--use-fake-ui-for-media-stream")
         options.add_argument("user-data-dir=./profile/Pynus-chrome")
         options.add_argument("profile-directory=Profile 1")
-        options.add_argument('--headless')
+        # options.add_argument('--headless')
         options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
                                 chmod=True, overwrite=False, version=None,
@@ -307,6 +307,15 @@ def check_link():
         print(f'Process finished in {time()-start_time} seconds.')
 
 
+def countdown(time_left):
+    while time_left:
+        print('Your class is starting in',
+              f'{str(timedelta(seconds=time_left))}', end='\r')
+        sleep(1)
+        time_left -= 1
+    print('Your class is starting now. Joining the Zoom meeting...')
+
+
 def fetch_meetings():
     browser.get(MYCLASS_INDEX)
     load_by_id('studentViconList')
@@ -323,7 +332,7 @@ def fetch_meetings():
     meetings = []
     for i in range(len(meeting_link)):
         time = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][0],
-                                 '%d %b %Y %H:%M:%S') + timedelta(minutes=-20)
+                                 '%d %b %Y %H:%M:%S') + timedelta(minutes=-10)
         endtime = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][1],
                                     '%d %b %Y %H:%M:%S')
         meetings.append([time, endtime, meeting_link[i]])
@@ -337,12 +346,12 @@ def join_meeting(meeting):
         wait_time = (meeting[0] - datetime.now().replace(
                      microsecond=0)).total_seconds()
 
-    print(f'Class starting in {wait_time} seconds')
-    sleep(wait_time)
+    countdown(wait_time)
     browser.get(meeting[2])
 
     wait_time = (meeting[1] - datetime.now()).total_seconds()
     sleep(wait_time)
+    sleep(60)
 
 
 def class_standy():
@@ -459,9 +468,9 @@ def main():
 
     # Fetch and check the links
     try:
-        if args.mode == 'forum':
+        if args.mode.lower() == 'forum':
             check_link()
-        elif args.mode == 'class':
+        elif args.mode.lower() == 'class':
             class_standy()
         else:
             print('Invalid mode, running in forum checking mode')
@@ -476,7 +485,7 @@ def main():
         print('Unexpected error occured:', sys.exc_info()[0])
 
     # Write user's data to csv file
-    if args.mode == 'forum':
+    if args.mode.lower() == 'forum':
         with open('pynus_data.csv', 'a', newline='') as pynus_data:
             csv.writer(pynus_data).writerows(
                 [replied[0], replied[1]] for replied in newly_replied)
