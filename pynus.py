@@ -340,14 +340,14 @@ def fetch_meetings(username, password):
 
     meetings = []
     for i in range(len(meeting_link)):
-        if meeting_link[i].text != '-':
+        if meeting_link[i].text == '-':
             continue
         time = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][0],
                                  '%d %b %Y %H:%M:%S') + timedelta(minutes=-10)
         endtime = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][1],
                                     '%d %b %Y %H:%M:%S')
-        link = str(meeting_link[i].find_element_by_tag_name(
-                   'a').get_attribute('href'))
+        link = str(meeting_link[i].find_element_by_tag_name('a')
+                   .get_attribute('href'))
         meetings.append([time, endtime, link])
 
     logout()
