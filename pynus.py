@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from time import sleep, time
 
 VERSION = 'v0.2.0'
-BUILD = '22022021'
+BUILD = '23022021'
 
 INDEX = 'https://binusmaya.binus.ac.id/newStudent/'
 LOGIN = 'https://binusmaya.binus.ac.id/login/'
@@ -86,8 +86,7 @@ def setup_browser(browser_name):
         options.add_argument("disable-infobars")
         options.add_argument("--disable-extensions")
         options.add_argument("--use-fake-ui-for-media-stream")
-        options.add_argument("user-data-dir=./profile/Pynus-chrome")
-        options.add_argument("profile-directory=Profile 1")
+        options.add_argument("--user-data-dir=./profile/Pynus-chrome")
         options.add_argument('--headless')
         options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
@@ -368,6 +367,10 @@ def join_meeting(meeting):
 
     countdown(wait_time)
     browser.get(meeting[2])
+    load_by_class('_1FvRrPS6')
+    browser.find_element_by_class_name('_1FvRrPS6').click()
+
+    print(browser.current_url)
 
     wait_time = (meeting[1] - datetime.now()).total_seconds()
     sleep(wait_time)
@@ -400,8 +403,6 @@ def class_standy():
             break
 
         login_error = browser.find_element_by_id('login_error')
-
-        print(login_error.text)
 
         if login_error.text != "":
             print('Your username/password is incorrect!\n')
@@ -480,12 +481,19 @@ def main():
 
     # Setup the browser
     if args.browser.lower() == 'chrome':
+        if args.mode.lower() == 'class':
+            print('Chrome is currently not supported in this mode.')
+            exit()
         setup_browser('chrome')
     elif args.browser.lower() == 'firefox':
         setup_browser('firefox')
     else:
-        print('Unrecognized browser, trying to use chrome instead.')
-        setup_browser('chrome')
+        if args.mode.lower() == 'class':
+            print('Unrecognized browser, trying to use firefox instead.')
+            setup_browser('firefox')
+        else:
+            print('Unrecognized browser, trying to use chrome instead.')
+            setup_browser('chrome')
 
     # Fetch and check the links
     try:
@@ -494,7 +502,7 @@ def main():
         elif args.mode.lower() == 'class':
             class_standy()
         else:
-            print('Invalid mode, running in forum checking mode')
+            print('Invalid mode, running in forum checking mode.')
             check_link()
     except (KeyboardInterrupt, SystemExit):
         print('\nProcess terminated without error.')
