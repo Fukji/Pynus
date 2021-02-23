@@ -418,7 +418,7 @@ def class_standy():
             print(start_time, end_time, link)
 
     while True:
-        if len(meetings) == 0 and time() - start >= 5400:
+        if time() - start >= 5400:
             meetings = fetch_meetings(username, password)
             start = time()
         elif len(meetings) > 0:
