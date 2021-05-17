@@ -466,13 +466,13 @@ def main():
     parser.add_argument('-d', '--debug', help='enable debug mode',
                         action='store_true')
     parser.add_argument('-b', '--browser', default='chrome',
-                        help='select custom browser')
+                        help='select custom browser [chrome/firefox]')
     parser.add_argument('-l', '--limit', default=7, type=positive_int,
-                        help='limit output')
+                        help='limit output (days)')
     parser.add_argument('-t', '--timeout', default=75, type=positive_int,
-                        help='set custom timeout')
+                        help='set custom timeout (seconds)')
     parser.add_argument('-m', '--mode', default='forum',
-                        help='choose mode')
+                        help='choose mode [forum/class]')
     args = parser.parse_args()
 
     # Change global variable based on argument value
