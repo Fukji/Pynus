@@ -1,6 +1,7 @@
 import argparse
 import csv
 import re
+import os
 import pyderman
 import sys
 import traceback
@@ -19,7 +20,7 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from time import sleep, time
 
 VERSION = 'v0.2.0'
-BUILD = '23022021'
+BUILD = '20210518'
 
 INDEX = 'https://binusmaya.binus.ac.id/newStudent/'
 LOGIN = 'https://binusmaya.binus.ac.id/login/'
@@ -70,7 +71,10 @@ def positive_int(value):
 # Setup webdriver browser based on argument value
 def setup_browser(browser_name):
     global browser
+    dir = os.path.dirname(__file__)
+
     if browser_name == 'chrome':
+        profile_path = os.path.join(dir, 'profile', 'Pynus-chrome')
         options = copt()
         prefs = {'profile.default_content_setting_values': {
                  'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
@@ -86,20 +90,22 @@ def setup_browser(browser_name):
         options.add_argument("disable-infobars")
         options.add_argument("--disable-extensions")
         options.add_argument("--use-fake-ui-for-media-stream")
-        options.add_argument("--user-data-dir=./profile/Pynus-chrome")
+        options.add_argument("--user-data-dir=" + profile_path)
         options.add_argument('--headless')
         options.add_argument('--log-level=3')
         path = pyderman.install(browser=pyderman.chrome, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
         browser = webdriver.Chrome(executable_path=path, options=options)
+
     elif browser_name == 'firefox':
+        profile_path = os.path.join(dir, 'profile', 'Pynus-firefox')
         options = fopt()
         options.add_argument('--headless')
         path = pyderman.install(browser=pyderman.firefox, verbose=False,
                                 chmod=True, overwrite=False, version=None,
                                 filename=None, return_info=False)
-        profile = webdriver.FirefoxProfile('./profile/zxqcqwmr.Pynus-firefox')
+        profile = webdriver.FirefoxProfile(profile_path)
         browser = webdriver.Firefox(executable_path=path, options=options,
                                     firefox_profile=profile)
 
