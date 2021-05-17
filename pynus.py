@@ -71,10 +71,10 @@ def positive_int(value):
 # Setup webdriver browser based on argument value
 def setup_browser(browser_name):
     global browser
-    dir = os.path.dirname(__file__)
+    directory = os.path.dirname(os.path.realpath(__file__))
 
     if browser_name == 'chrome':
-        profile_path = os.path.join(dir, 'profile', 'Pynus-chrome')
+        profile_path = os.path.join(directory, 'profile', 'Pynus-chrome')
         options = copt()
         prefs = {'profile.default_content_setting_values': {
                  'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
@@ -99,7 +99,7 @@ def setup_browser(browser_name):
         browser = webdriver.Chrome(executable_path=path, options=options)
 
     elif browser_name == 'firefox':
-        profile_path = os.path.join(dir, 'profile', 'Pynus-firefox')
+        profile_path = os.path.join(directory, 'profile', 'Pynus-firefox')
         options = fopt()
         options.add_argument('--headless')
         path = pyderman.install(browser=pyderman.firefox, verbose=False,
@@ -488,9 +488,10 @@ def main():
     # Setup the browser
     if args.browser.lower() == 'chrome':
         if args.mode.lower() == 'class':
-            print('Chrome is currently not supported in this mode.')
-            exit()
-        setup_browser('chrome')
+            print('Chrome is currently not supported in this mode, trying to use firefox instead')
+            setup_browser('firefox')
+        else:
+            setup_browser('chrome')
     elif args.browser.lower() == 'firefox':
         setup_browser('firefox')
     else:
