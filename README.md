@@ -6,10 +6,10 @@ Pynus uses frameworks called Selenium and Webdriver Manager. Use the package man
 
 ```bash
 # If python is set to python 2.x
-pip3 install selenium webdriver_manager
+pip3 install selenium webdriver-manager
 
 # If python is set to python 3.x
-pip install selenium webdriver_manager
+pip install selenium webdriver-manager
 ```
 
 The current version of Pynus only supports [Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser. Before running the program, make sure that compatible browser has been properly installed. To use class mode, please make sure that Zoom has been installed on your system and you are properly logged in.
