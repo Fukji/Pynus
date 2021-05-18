@@ -1,4 +1,5 @@
 lib/
 /geckodriver.log
 /pynus_data.csv
-/profile
+**/__pycache__
+/pynus/profile
