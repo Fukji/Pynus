@@ -99,7 +99,9 @@ def setup_browser(browser_name, debug):
 
     try:
         if browser_name == 'chrome':
-            profile_path = os.path.join(directory, os.pardir, 'profile', 'Pynus-chrome')
+            profile_path = os.path.abspath(os.path.join(directory, os.pardir,
+                                                        'profile',
+                                                        'Pynus-chrome'))
             options = copt()
             prefs = {'profile.default_content_setting_values': {
                      'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
@@ -129,7 +131,9 @@ def setup_browser(browser_name, debug):
             browser = webdriver.Edge(executable_path=path, options=options)
 
         elif browser_name == 'firefox':
-            profile_path = os.path.join(directory, os.pardir, 'profile', 'Pynus-firefox')
+            profile_path = os.path.abspath(os.path.join(directory, os.pardir,
+                                                        'profile',
+                                                        'Pynus-firefox'))
             options = fopt()
             options.add_argument('--headless')
             path = GeckoDriverManager().install()
