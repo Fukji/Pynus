@@ -1,7 +1,7 @@
 import re
-import webbrowser
 from datetime import datetime, timedelta
 from getpass import getpass
+from pynus.utils import webbrowser
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep, time

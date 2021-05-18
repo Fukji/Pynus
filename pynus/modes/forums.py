@@ -58,10 +58,11 @@ def fetch_links():
 
 
 def check_link(br, args):
-    global browser, timeout, debug
+    global browser, timeout, debug, limit
     browser = br
     timeout = args.timeout
     debug = args.debug
+    limit = args.limit
 
     # Open the login page
     browser.get(LOGIN)
@@ -165,18 +166,22 @@ def check_link(br, args):
     if debug:
         print(f'Process finished in {time()-start_time} seconds.')
 
-    return newly_replied, links, not_replied
+    write_replied()
+    print_thread_list()
 
         
 # Add newly replied threads to csv
-def write_replied(newly_replied):
+def write_replied():
     with open('pynus_data.csv', 'a', newline='') as pynus_data:
         csv.writer(pynus_data).writerows(
             [replied[0], replied[1]] for replied in newly_replied)
 
 
 # Print unreplied/unchecked threads
-def print_thread_list(not_replied, limit):
+def print_thread_list():
+    print(f'Checked {len(links)} links.',
+          f'Found {len(not_replied)} unreplied/unchecked.')
+
     time_limit = (datetime.now() - timedelta(days=limit)).date()
     printed = False
 

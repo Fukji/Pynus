@@ -93,7 +93,7 @@ def load_thread(browser, xpath, timeout, iteration=1):
 
 
 # Setup webdriver browser based on argument value
-def setup_browser(browser_name):
+def setup_browser(browser_name, debug):
     os.environ['WDM_LOG_LEVEL'] = '0'
     directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -101,7 +101,6 @@ def setup_browser(browser_name):
         if browser_name == 'chrome':
             profile_path = os.path.join(directory, os.pardir, 'profile', 'Pynus-chrome')
             options = copt()
-            print(profile_path)
             prefs = {'profile.default_content_setting_values': {
                      'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
                      'notifications': 2, 'auto_select_certificate': 2,
@@ -132,14 +131,13 @@ def setup_browser(browser_name):
         elif browser_name == 'firefox':
             profile_path = os.path.join(directory, os.pardir, 'profile', 'Pynus-firefox')
             options = fopt()
-            print(profile_path)
             options.add_argument('--headless')
             path = GeckoDriverManager().install()
             profile = webdriver.FirefoxProfile(profile_path)
             browser = webdriver.Firefox(executable_path=path, options=options,
                                         firefox_profile=profile)
     except ValueError:
-        print('This browser is currently unsupported on your OS.')
+        print('This browser is currently not supported on your OS.')
         if debug:
             traceback.print_exc()
         exit()

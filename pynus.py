@@ -63,20 +63,20 @@ def main():
     if args.browser == 'chrome':
         if args.mode == 'class':
             print('Chrome is currently not supported in this mode, trying to use firefox instead.')
-            browser = webbrowser.setup_browser('firefox')
+            browser = webbrowser.setup_browser('firefox', debug)
         else:
-            browser = webbrowser.setup_browser('chrome')
+            browser = webbrowser.setup_browser('chrome', debug)
     elif args.browser == 'firefox':
-        browser = webbrowser.setup_browser('firefox')
+        browser = webbrowser.setup_browser('firefox', debug)
     elif args.browser == 'edge':
-        browser = webbrowser.setup_browser('edge')
+        browser = webbrowser.setup_browser('edge', debug)
     else:
         if args.mode == 'class':
             print('Unrecognized browser, trying to use firefox instead.')
-            browser = webbrowser.setup_browser('firefox')
+            browser = webbrowser.setup_browser('firefox', debug)
         else:
             print('Unrecognized browser, trying to use chrome instead.')
-            browser = webbrowser.setup_browser('chrome')
+            browser = webbrowser.setup_browser('chrome', debug)
 
     # Fetch and check the links
     try:
@@ -85,8 +85,7 @@ def main():
         else:
             if args.mode != 'forum':
                 print('Invalid mode, running in forum checking mode.')
-            newly_replied, links, not_replied = forums.check_link(browser,
-                                                                  args)
+            forums.check_link(browser, args)
     except KeyboardInterrupt:
         print('\nProcess terminated without error.')
     except SystemExit:
@@ -95,13 +94,6 @@ def main():
         if debug:
             traceback.print_exc()
         print('Unexpected error occured:', sys.exc_info()[0])
-
-    # Write user's data to csv file
-    if args.mode == 'forum':
-        forums.write_replied(newly_replied)
-        print(f'Checked {len(links)} links.',
-              f'Found {len(not_replied)} unreplied/unchecked.')
-        forums.print_thread_list(not_replied, limit)
 
     webbrowser.terminate(browser)
 
