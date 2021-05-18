@@ -2,14 +2,14 @@
 Pynus is a [python](https://wiki.python.org/moin/BeginnersGuide) program for BINUS students to view unreplied forum threads and to join online class automatically.
 
 ## Installation
-Pynus uses frameworks called Selenium and Pyderman. Use the package manager [pip](https://pip.pypa.io/en/stable/) to install them.
+Pynus uses frameworks called Selenium and Webdriver Manager. Use the package manager [pip](https://pip.pypa.io/en/stable/) to install them.
 
 ```bash
 # If python is set to python 2.x
-pip3 install selenium pyderman
+pip3 install selenium webdriver_manager
 
 # If python is set to python 3.x
-pip install selenium pyderman
+pip install selenium webdriver_manager
 ```
 
 The current version of Pynus only supports [Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser. Before running the program, make sure that compatible browser has been properly installed. To use class mode, please make sure that Zoom has been installed on your system and you are properly logged in.
