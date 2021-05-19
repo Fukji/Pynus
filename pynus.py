@@ -5,8 +5,8 @@ import traceback
 from pynus.modes import classes, forums
 from pynus.utils import webbrowser
 
-VERSION = 'v0.2.0'
-BUILD = '20210518'
+VERSION = 'v0.2.1'
+BUILD = '20210519'
 
 browser = None
 timeout = 75
@@ -20,13 +20,13 @@ def positive_int(value):
         value = int(value)
         if value <= 0:
             raise argparse.ArgumentTypeError(
-                '%s is an invalid positive int value' % value)
+                '%s is an invalid positive int value.' % value)
         else:
             return value
 
     except ValueError:
         raise argparse.ArgumentTypeError(
-            '%s is an invalid positive int value' % value)
+            '%s is an invalid positive int value.' % value)
 
 
 def main():
@@ -61,11 +61,7 @@ def main():
     args.browser = args.browser.lower()
     args.mode = args.mode.lower()
     if args.browser == 'chrome':
-        if args.mode == 'class':
-            print('Chrome is currently not supported in this mode, trying to use firefox instead.')
-            browser = webbrowser.setup_browser('firefox', debug)
-        else:
-            browser = webbrowser.setup_browser('chrome', debug)
+        browser = webbrowser.setup_browser('chrome', debug)
     elif args.browser == 'firefox':
         browser = webbrowser.setup_browser('firefox', debug)
     elif args.browser == 'edge':

@@ -93,7 +93,7 @@ def load_thread(browser, xpath, timeout, iteration=1):
 
 
 # Setup webdriver browser based on argument value
-def setup_browser(browser_name, debug):
+def setup_browser(browser_name, debug=False, headless=True):
     os.environ['WDM_LOG_LEVEL'] = '0'
     directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -113,29 +113,35 @@ def setup_browser(browser_name, debug):
                      'midi_sysex': 2, 'push_messaging': 2,
                      'ssl_cert_decisions': 2, 'metro_switch_to_desktop': 2,
                      'protected_media_identifier': 2, 'app_banner': 2,
-                     'site_engagement': 2, 'durable_storage': 2}}
+                     'site_engagement': 2, 'durable_storage': 2},
+                     'protocol_handler': {
+                        'allowed_origin_protocol_pairs': {
+                            'https://binus.zoom.us': {'zoommtg':True}
+                    }}}
             options.add_experimental_option('prefs', prefs)
-            options.add_argument("disable-infobars")
-            options.add_argument("--disable-extensions")
-            options.add_argument("--use-fake-ui-for-media-stream")
-            options.add_argument("--user-data-dir=" + profile_path)
-            options.add_argument('--headless')
+            options.add_argument('disable-infobars')
+            options.add_argument('--disable-extensions')
+            options.add_argument('--use-fake-ui-for-media-stream')
+            if headless:
+                options.add_argument('--headless')
             options.add_argument('--log-level=3')
             path = ChromeDriverManager().install()
             browser = webdriver.Chrome(executable_path=path, options=options)
+            browser.set_window_position(-10000, 0)
 
         elif browser_name == 'edge':
             options = eopt()
             options.use_chromium = True
             path = EdgeChromiumDriverManager().install()
-            browser = webdriver.Edge(executable_path=path, options=options)
+            browser = webdriver.Edge(executable_path=path)
 
         elif browser_name == 'firefox':
             profile_path = os.path.abspath(os.path.join(directory, os.pardir,
                                                         'profile',
                                                         'Pynus-firefox'))
             options = fopt()
-            options.add_argument('--headless')
+            if headless:
+                options.add_argument('--headless')
             path = GeckoDriverManager().install()
             profile = webdriver.FirefoxProfile(profile_path)
             browser = webdriver.Firefox(executable_path=path, options=options,

@@ -29,7 +29,7 @@ def logout():
 def countdown(time_left):
     while time_left:
         print('Your class is starting in',
-              f'{str(timedelta(seconds=time_left))}', end='\r')
+              f'{str(timedelta(seconds=time_left))}.', end='\r')
         sleep(1)
         time_left -= 1
     print('Your class is starting now. Joining the Zoom meeting...')
@@ -77,11 +77,19 @@ def join_meeting(meeting):
                      microsecond=0)).total_seconds()
 
     countdown(wait_time)
-    browser.get(meeting[2])
-    webbrowser.load_by_class(browser, '_1FvRrPS6', timeout)
-    browser.find_element_by_class_name('_1FvRrPS6').click()
+    if browser.name == 'firefox':
+        browser.get(meeting[2])
+        webbrowser.load_by_class(browser, '_1FvRrPS6', timeout)
+        browser.find_element_by_class_name('_1FvRrPS6').click()
 
-    print(browser.current_url)
+    else:
+        alt_browser = webbrowser.setup_browser(browser.name, headless=False)
+        alt_browser.get(meeting[2])
+        webbrowser.load_by_class(alt_browser, '_1FvRrPS6', timeout)
+        alt_browser.find_element_by_class_name('_1FvRrPS6').click()
+        alt_browser.quit()
+
+    print(meeting[2])
 
     wait_time = (meeting[1] - datetime.now()).total_seconds()
     sleep(wait_time)
@@ -103,7 +111,7 @@ def standby(br, args):
         password = getpass()
 
         if username == "" or password == "":
-            print('Username/password must not be blank\n')
+            print('Username/password must not be blank.\n')
             continue
 
         browser.find_element_by_xpath(XPATHS['userID']).clear()

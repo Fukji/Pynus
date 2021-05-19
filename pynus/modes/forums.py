@@ -74,7 +74,7 @@ def check_link(br, args):
         password = getpass()
 
         if username == "" or password == "":
-            print('Username/password must not be blank\n')
+            print('Username/password must not be blank.\n')
             continue
 
         browser.find_element_by_xpath(XPATHS['userID']).clear()
