@@ -36,7 +36,7 @@ def main():
     parser.add_argument('-d', '--debug', help='enable debug mode',
                         action='store_true')
     parser.add_argument('-b', '--browser', default='chrome',
-                        help='select custom browser [chrome/firefox]')
+                        help='select custom browser [chrome/firefox/edge]')
     parser.add_argument('-l', '--limit', default=7, type=positive_int,
                         help='limit output (days)')
     parser.add_argument('-t', '--timeout', default=75, type=positive_int,
@@ -65,7 +65,7 @@ def main():
     elif args.browser == 'firefox':
         browser = webbrowser.setup_browser('firefox', debug)
     elif args.browser == 'edge':
-        browser = webbrowser.setup_browser('edge', debug)
+        browser = webbrowser.setup_browser('msedge', debug)
     else:
         if args.mode == 'class':
             print('Unrecognized browser, trying to use firefox instead.')

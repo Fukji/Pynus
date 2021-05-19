@@ -8,7 +8,6 @@ from selenium.common.exceptions import (
 )
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.chrome.options import Options as copt
-from selenium.webdriver.edge.options import Options as eopt
 from selenium.webdriver.firefox.options import Options as fopt
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
@@ -101,7 +100,7 @@ def setup_browser(browser_name, debug=False, headless=True):
         if browser_name == 'chrome':
             profile_path = os.path.abspath(os.path.join(directory, os.pardir,
                                                         'profile',
-                                                        'Pynus-chrome'))
+                                                        'chrome'))
             options = copt()
             prefs = {'profile.default_content_setting_values': {
                      'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
@@ -122,6 +121,7 @@ def setup_browser(browser_name, debug=False, headless=True):
             options.add_argument('disable-infobars')
             options.add_argument('--disable-extensions')
             options.add_argument('--use-fake-ui-for-media-stream')
+            options.add_argument('--user-data-dir=' + profile_path)
             if headless:
                 options.add_argument('--headless')
             options.add_argument('--log-level=3')
@@ -129,16 +129,51 @@ def setup_browser(browser_name, debug=False, headless=True):
             browser = webdriver.Chrome(executable_path=path, options=options)
             browser.set_window_position(-10000, 0)
 
-        elif browser_name == 'edge':
+        elif browser_name == 'msedge':
+            try:
+                from msedge.selenium_tools import EdgeOptions as eopt
+                from msedge.selenium_tools import Edge
+            except ModuleNotFoundError:
+                print('Install msedge-selenium-tools using pip to use Microsoft Edge browser.')
+                sys.exit(0)
+
+            profile_path = os.path.abspath(os.path.join(directory, os.pardir, 
+                                                        'profile', 'edge'))
+
             options = eopt()
             options.use_chromium = True
+            prefs = {'profile.default_content_setting_values': {
+                     'images': 2, 'plugins': 2, 'popups': 2, 'geolocation': 2,
+                     'notifications': 2, 'auto_select_certificate': 2,
+                     'fullscreen': 2, 'mouselock': 2, 'mixed_script': 2,
+                     'media_stream': 2, 'media_stream_mic': 2,
+                     'media_stream_camera': 2, 'protocol_handlers': 2,
+                     'ppapi_broker': 2, 'automatic_downloads': 2,
+                     'midi_sysex': 2, 'push_messaging': 2,
+                     'ssl_cert_decisions': 2, 'metro_switch_to_desktop': 2,
+                     'protected_media_identifier': 2, 'app_banner': 2,
+                     'site_engagement': 2, 'durable_storage': 2,
+                     'do_not_create_desktop_shortcut': True},
+                     'protocol_handler': {
+                        'allowed_origin_protocol_pairs': {
+                            'https://binus.zoom.us': {'zoommtg':True}
+                    }}}
+            options.add_experimental_option('prefs', prefs)
+            options.add_argument('disable-infobars')
+            options.add_argument('--disable-extensions')
+            options.add_argument('--use-fake-ui-for-media-stream')
+            options.add_argument('--user-data-dir=' + profile_path)
+            if headless:
+                options.add_argument('--headless')
+            options.add_argument('--log-level=3')
             path = EdgeChromiumDriverManager().install()
-            browser = webdriver.Edge(executable_path=path)
+            browser = Edge(executable_path=path, options=options)
+            browser.set_window_position(-10000, 0)
 
         elif browser_name == 'firefox':
             profile_path = os.path.abspath(os.path.join(directory, os.pardir,
                                                         'profile',
-                                                        'Pynus-firefox'))
+                                                        'firefox'))
             options = fopt()
             if headless:
                 options.add_argument('--headless')
@@ -150,7 +185,7 @@ def setup_browser(browser_name, debug=False, headless=True):
         print('This browser is currently not supported on your OS.')
         if debug:
             traceback.print_exc()
-        exit()
+        sys.exit(0)
 
     return browser
 
