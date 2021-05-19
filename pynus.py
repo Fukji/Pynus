@@ -6,12 +6,7 @@ from pynus.modes import classes, forums
 from pynus.utils import webbrowser
 
 VERSION = 'v0.2.1'
-BUILD = '20210519'
-
-browser = None
-timeout = 75
-debug = False
-limit = 7
+BUILD = '20210520'
 
 
 # Check for positive integer in argument
@@ -46,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     # Change global variable based on argument value
-    global timeout, debug, limit, browser
+    browser = None
     timeout = args.timeout
     debug = args.debug
     limit = args.limit

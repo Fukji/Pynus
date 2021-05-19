@@ -118,6 +118,7 @@ def setup_browser(browser_name, debug=False, headless=True):
                             'https://binus.zoom.us': {'zoommtg':True}
                     }}}
             options.add_experimental_option('prefs', prefs)
+            options.add_experimental_option('excludeSwitches', ['enable-logging'])
             options.add_argument('disable-infobars')
             options.add_argument('--disable-extensions')
             options.add_argument('--use-fake-ui-for-media-stream')
@@ -159,6 +160,7 @@ def setup_browser(browser_name, debug=False, headless=True):
                             'https://binus.zoom.us': {'zoommtg':True}
                     }}}
             options.add_experimental_option('prefs', prefs)
+            options.add_experimental_option('excludeSwitches', ['enable-logging'])
             options.add_argument('disable-infobars')
             options.add_argument('--disable-extensions')
             options.add_argument('--use-fake-ui-for-media-stream')
