@@ -1,11 +1,13 @@
 import csv
 import re
+import os
+import threading
 from datetime import datetime, timedelta
 from getpass import getpass
 from pynus.utils import webbrowser
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import Select
-from time import time
+from time import time, sleep
 
 INDEX = 'https://binusmaya.binus.ac.id/newStudent/'
 LOGIN = 'https://binusmaya.binus.ac.id/login/'
@@ -23,8 +25,34 @@ not_replied = []
 newly_replied = []
 links = []
 
+spinner_text = 'Loading..'
+spinner_state = '|/-\\'
+spinner_count = 0
+spinner_stop = False
+
+
+def progress_spinner():
+    global spinner_count
+    while True:
+        terminal_width = os.get_terminal_size().columns
+        if len(spinner_text) + 3 <= terminal_width:
+            print(f'{spinner_text: <{terminal_width-1}}{spinner_state[spinner_count%4]}',
+                  end='\r')
+        else:
+            text = spinner_text[:terminal_width-5] + '..'
+            print(f'{text}  {spinner_state[spinner_count%4]}', end='\r')
+
+        spinner_count += 1
+        sleep(0.1)
+
+        if spinner_stop:
+            print(' ' * terminal_width, end='\r')
+            break
+
 
 def fetch_links():
+    global spinner_text
+
     # Get the user's courses
     courses = Select(browser.find_element_by_id('ddlCourse'))
 
@@ -33,12 +61,15 @@ def fetch_links():
         courses.select_by_visible_text(my_course.text)
         webbrowser.load_dropdown(browser, 'ddlClass', timeout)
 
+        spinner_text = f'Fetching user\'s class list for {my_course.text}'
         classes = Select(browser.find_element_by_id('ddlClass'))
         for my_class in classes.options:
             classes.select_by_visible_text(my_class.text)
 
             webbrowser.load_dropdown(browser, 'ddlTopic', timeout)
             webbrowser.load_by_class(browser, 'tabledata', timeout)
+
+            spinner_text = f'Fetching user\'s thread list for {my_course.text} - {my_class.text}'
 
             topics = Select(browser.find_element_by_id('ddlTopic'))
             topics.select_by_visible_text(topics.options[-1].text)
@@ -51,14 +82,11 @@ def fetch_links():
                        for title in table.find_elements_by_tag_name('a')][:-1]
             links.extend(threads)
 
-            if debug:
-                print(f'Checking {my_course.text} - {my_class.text}.',
-                      f'Found {len(threads)} links,',
-                      f'for a total of {len(links)}.')
+            spinner_text = f'Found {len(threads)} thread(s) in {my_course.text} - {my_class.text}'
 
 
 def check_link(br, args):
-    global browser, timeout, debug, limit
+    global browser, timeout, debug, limit, spinner_text, spinner_stop
     browser = br
     timeout = args.timeout
     debug = args.debug
@@ -70,7 +98,7 @@ def check_link(br, args):
 
     # Prompt user for login info and try to login
     while True:
-        username = input('Username: ').lower()
+        username = input('Username: ').lower().split('@')[0]
         password = getpass()
 
         if username == "" or password == "":
@@ -120,15 +148,18 @@ def check_link(br, args):
                 already_replied.append(row[1])
 
     # Fetch forum thread links
-    fetch_links()
+    spinner_text = 'Fetching user\'s courses list'
+    spinner_thread = threading.Thread(target=progress_spinner)
+    spinner_thread.start()
 
-    if debug:
-        print(f'Link scraping finished in: {time()-start_time} seconds.')
+    fetch_links()
+    fetch_time = time()-start_time
 
     # Check for unreplied forum threads
     for link in links:
         if link[2] in already_replied:
             continue
+
         browser.get(link[2])
         browser.refresh()
 
@@ -144,6 +175,8 @@ def check_link(br, args):
         title = browser.find_element_by_xpath(XPATHS['threadtitle']).text
         posted = browser.find_element_by_xpath(XPATHS['threaddate']).text
         names = browser.find_elements_by_class_name('iUserName')
+
+        spinner_text = f'Checking thread [{title}]'
 
         # Try to find a reply button in the thread
         try:
@@ -163,11 +196,16 @@ def check_link(br, args):
                 'status': 'unreplied'
             })
 
-    if debug:
-        print(f'Process finished in {time()-start_time} seconds.')
+    sleep(0.15)
+    spinner_stop = True
+    spinner_thread.join()
 
     write_replied()
     print_thread_list()
+
+    if debug:
+        print(f'\nFetching threads took {fetch_time} seconds.')
+        print(f'Process finished in {time()-start_time} seconds.')
 
         
 # Add newly replied threads to csv
@@ -179,19 +217,19 @@ def write_replied():
 
 # Print unreplied/unchecked threads
 def print_thread_list():
-    print(f'Checked {len(links)} links.',
-          f'Found {len(not_replied)} unreplied/unchecked.')
+    print(f'Checked {len(links)} thread(s).',
+          f'Found {len(not_replied)} \033[91munreplied\033[0m/\033[93munchecked\033[0m.')
 
     time_limit = (datetime.now() - timedelta(days=limit)).date()
     printed = False
 
-    print('\n', f'Displaying threads within your time range:', sep='')
+    print('\n', f'Displaying thread(s) within your time range:', sep='')
     for unreplied in not_replied:
         if unreplied['status'] == 'unchecked':
             printed = True
             print('\n', f'Course: {unreplied["course"]}', sep='')
             print(f'Source: {unreplied["source"]}')
-            print(f'Status: {unreplied["status"]}')
+            print('Status: \033[93munchecked\033[0m')
         else:
             time_posted = datetime.strptime(
                 unreplied['posted'], '%d/%m/%Y %H:%M').date()
@@ -201,10 +239,10 @@ def print_thread_list():
                 print(f'Course: {unreplied["course"]}')
                 print(f'Posted: {unreplied["posted"]}')
                 print(f'Source: {unreplied["source"]}')
-                print(f'Status: {unreplied["status"]}')
-
+                print('Status: \033[91munreplied\033[0m')
+                    
     if printed is False:
-        print(f'All threads from the past {limit} days has been replied.')
+        print(f'All threads from the past {limit} day(s) has been replied.')
 
 
 if __name__ == '__main__':

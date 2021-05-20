@@ -39,7 +39,7 @@ def countdown(time_left):
             if len(out) < terminal_width:
                 print(f'{out: <{terminal_width}}', end='\r')
             else:
-                print(f'{out[:terminal_width-3]}...', end='\r')
+                print(f'{out[:terminal_width-2]}..', end='\r')
         sleep(1)
         time_left -= 1
 
