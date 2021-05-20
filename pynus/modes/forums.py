@@ -36,17 +36,17 @@ def progress_spinner():
     while True:
         terminal_width = os.get_terminal_size().columns
         if len(spinner_text) + 3 <= terminal_width:
-            print(f'{spinner_text: <{terminal_width-1}}{spinner_state[spinner_count%4]}',
+            print(f'{spinner_text: <{terminal_width-2}}{spinner_state[spinner_count%4]}',
                   end='\r')
         else:
-            text = spinner_text[:terminal_width-5] + '..'
+            text = spinner_text[:terminal_width-6] + '..'
             print(f'{text}  {spinner_state[spinner_count%4]}', end='\r')
 
         spinner_count += 1
         sleep(0.1)
 
         if spinner_stop:
-            print(' ' * terminal_width, end='\r')
+            print(' ' * (terminal_width-1), end='\r')
             break
 
 
@@ -152,53 +152,55 @@ def check_link(br, args):
     spinner_thread = threading.Thread(target=progress_spinner)
     spinner_thread.start()
 
-    fetch_links()
-    fetch_time = time()-start_time
+    try:
+        fetch_links()
+        fetch_time = time()-start_time
 
-    # Check for unreplied forum threads
-    for link in links:
-        if link[2] in already_replied:
-            continue
+        # Check for unreplied forum threads
+        for link in links:
+            if link[2] in already_replied:
+                continue
 
-        browser.get(link[2])
-        browser.refresh()
+            browser.get(link[2])
+            browser.refresh()
 
-        if webbrowser.load_thread(browser, XPATHS['threadtitle'],
-                                  timeout) is False:
-            not_replied.append({
-                'course': link[0] + ' - ' + link[1],
-                'source': link[2],
-                'status': 'unchecked'
-            })
-            continue
+            if webbrowser.load_thread(browser, XPATHS['threadtitle'],
+                                      timeout) is False:
+                not_replied.append({
+                    'course': link[0] + ' - ' + link[1],
+                    'source': link[2],
+                    'status': 'unchecked'
+                })
+                continue
 
-        title = browser.find_element_by_xpath(XPATHS['threadtitle']).text
-        posted = browser.find_element_by_xpath(XPATHS['threaddate']).text
-        names = browser.find_elements_by_class_name('iUserName')
+            title = browser.find_element_by_xpath(XPATHS['threadtitle']).text
+            posted = browser.find_element_by_xpath(XPATHS['threaddate']).text
+            names = browser.find_elements_by_class_name('iUserName')
 
-        spinner_text = f'Checking thread [{title}]'
+            spinner_text = f'Checking thread [{title}]'
 
-        # Try to find a reply button in the thread
-        try:
-            replyButton = browser.find_element_by_class_name('reply')
-        except NoSuchElementException:
-            replyButton = None
+            # Try to find a reply button in the thread
+            try:
+                replyButton = browser.find_element_by_class_name('reply')
+            except NoSuchElementException:
+                replyButton = None
 
-        if student_name in [name.text for name in names] or \
-           replyButton is None:
-            newly_replied.append((username, link[2]))
-        else:
-            not_replied.append({
-                'title': title,
-                'course': link[0] + ' - ' + link[1],
-                'posted': posted,
-                'source': link[2],
-                'status': 'unreplied'
-            })
+            if student_name in [name.text for name in names] or \
+               replyButton is None:
+                newly_replied.append((username, link[2]))
+            else:
+                not_replied.append({
+                    'title': title,
+                    'course': link[0] + ' - ' + link[1],
+                    'posted': posted,
+                    'source': link[2],
+                    'status': 'unreplied'
+                })
 
-    sleep(0.15)
-    spinner_stop = True
-    spinner_thread.join()
+    finally:
+        sleep(0.15)
+        spinner_stop = True
+        spinner_thread.join()
 
     write_replied()
     print_thread_list()

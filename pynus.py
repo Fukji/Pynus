@@ -1,5 +1,6 @@
 import argparse
 import csv
+import os
 import sys
 import traceback
 from pynus.modes import classes, forums
@@ -24,8 +25,9 @@ def positive_int(value):
             '%s is an invalid positive int value.' % value)
 
 
-def main():
-
+def main():    
+    os.system('')
+    
     # Parse user inputted arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', help='enable debug mode',
