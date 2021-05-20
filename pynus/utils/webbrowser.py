@@ -1,6 +1,7 @@
 import os
 import sys
 import traceback
+from pynus.utils import progress
 from selenium import webdriver
 from selenium.common.exceptions import (
     StaleElementReferenceException,
@@ -17,7 +18,8 @@ from time import sleep
 
 # Stop the browser and terminate the program
 def terminate(browser):
-    browser.quit()
+    if browser is not None:
+        browser.quit()
     sys.exit(0)
 
 
@@ -135,6 +137,7 @@ def setup_browser(browser_name, debug=False, headless=True):
                 from msedge.selenium_tools import EdgeOptions as eopt
                 from msedge.selenium_tools import Edge
             except ModuleNotFoundError:
+                progress.spinner_pause()
                 print('Install msedge-selenium-tools using pip to use Microsoft Edge browser.')
                 sys.exit(0)
 
@@ -184,6 +187,7 @@ def setup_browser(browser_name, debug=False, headless=True):
             browser = webdriver.Firefox(executable_path=path, options=options,
                                         firefox_profile=profile)
     except ValueError:
+        progress.spinner_pause()
         print('This browser is currently not supported on your OS.')
         if debug:
             traceback.print_exc()

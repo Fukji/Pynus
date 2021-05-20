@@ -4,7 +4,7 @@ import os
 import sys
 import traceback
 from pynus.modes import classes, forums
-from pynus.utils import webbrowser
+from pynus.utils import progress, webbrowser
 
 VERSION = 'v0.2.1'
 BUILD = '20210520'
@@ -54,42 +54,51 @@ def main():
         print(f' build {BUILD}', end='')
     print()
 
-    # Setup the browser
-    args.browser = args.browser.lower()
-    args.mode = args.mode.lower()
-    if args.browser == 'chrome':
-        browser = webbrowser.setup_browser('chrome', debug)
-    elif args.browser == 'firefox':
-        browser = webbrowser.setup_browser('firefox', debug)
-    elif args.browser == 'edge':
-        browser = webbrowser.setup_browser('msedge', debug)
-    else:
-        if args.mode == 'class':
-            print('Unrecognized browser, trying to use firefox instead.')
-            browser = webbrowser.setup_browser('firefox', debug)
-        else:
-            print('Unrecognized browser, trying to use chrome instead.')
-            browser = webbrowser.setup_browser('chrome', debug)
+    progress.spinner_text = 'Configuring drivers'
+    progress.spinner.start()
 
-    # Fetch and check the links
     try:
-        if args.mode == 'class':
-            classes.standby(browser, args)
+        # Setup the browser
+        args.browser = args.browser.lower()
+        args.mode = args.mode.lower()
+        if args.browser == 'chrome':
+            browser = webbrowser.setup_browser('chrome', debug)
+        elif args.browser == 'firefox':
+            browser = webbrowser.setup_browser('firefox', debug)
+        elif args.browser == 'edge':
+            browser = webbrowser.setup_browser('msedge', debug)
         else:
-            if args.mode != 'forum':
-                print('Invalid mode, running in forum checking mode.')
-            forums.check_link(browser, args)
-    except KeyboardInterrupt:
-        print('\nProcess terminated without error.')
-    except SystemExit:
-        sys.exit(0)
-    except:
-        if debug:
-            traceback.print_exc()
-        print('Unexpected error occured:', sys.exc_info()[0])
+            if args.mode == 'class':
+                print('Unrecognized browser, trying to use firefox instead.')
+                browser = webbrowser.setup_browser('firefox', debug)
+            else:
+                print('Unrecognized browser, trying to use chrome instead.')
+                browser = webbrowser.setup_browser('chrome', debug)
 
-    webbrowser.terminate(browser)
+        progress.spinner_pause()
 
+        # Run user's selected mode
+        try:
+            if args.mode == 'class':
+                classes.standby(browser, args)
+            else:
+                if args.mode != 'forum':
+                    print('Invalid mode, running in forum checking mode.')
+                forums.check_link(browser, args)
+        except KeyboardInterrupt:
+            print('\nProcess terminated without error.')
+        except SystemExit:
+            pass
+        except:
+            if debug:
+                traceback.print_exc()
+            print('Unexpected error occured:', sys.exc_info()[0])
+
+    finally:
+        progress.spinner_stop()
+        progress.spinner.join()
+        webbrowser.terminate(browser)
+    
 
 if __name__ == '__main__':
     main()
