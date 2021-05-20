@@ -12,7 +12,17 @@ pip3 install selenium webdriver-manager
 pip install selenium webdriver-manager
 ```
 
-The current version of Pynus only supports [Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser. Before running the program, make sure that compatible browser has been properly installed. To use class mode, please make sure that Zoom has been installed on your system and you are properly logged in.
+The current version of Pynus only supports [Chrome](https://www.google.com/chrome/), [Firefox](https://www.mozilla.org/en-US/firefox/new/) and [Edge](https://www.microsoft.com/en-us/edge) browser. Before running the program, make sure that compatible browser has been properly installed. To use class mode, please make sure that Zoom has been installed on your system and you are properly logged in.
+
+To use Edge browser, additional dependancy needs to be installed. Use the package manager pip to install them. This step is **optional** if you do not plan on using Edge.
+
+```bash
+# If python is set to python 2.x
+pip3 install msedge-selenium-tools
+
+# If python is set to python 3.x
+pip install msedge-selenium-tools
+```
 
 ## Usage and Arguments
 ### Usage
