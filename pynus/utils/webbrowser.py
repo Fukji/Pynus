@@ -18,15 +18,17 @@ from time import sleep
 
 # Stop the browser and terminate the program
 def terminate(browser):
+    progress.spinner_continue('Terminating all running process')
     if browser is not None:
         browser.quit()
-    sys.exit(0)
+    progress.spinner_stop()
+    progress.spinner.join()
 
 
-# # Alert the user regarding bad connection
+# Alert the user regarding bad connection
 def slow_connection(browser):
-    print('Your connection to Binusmaya is currently unstable.')
-    terminate(browser)
+    print('Your connection to BINUSMAYA is currently unstable.')
+    sys.exit(0)
 
 
 # Wait for an element to load based on the class name

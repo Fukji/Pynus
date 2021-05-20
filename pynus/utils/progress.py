@@ -20,17 +20,17 @@ def spinner_next():
         if spinner_state == 1:
             print(' ' * (terminal_width-1), end='\r')
             while(spinner_state == 1):
-            	sleep(0.1)
+                sleep(0.1)
 
         if spinner_state == 2:
-        	break
+            break
 
 
 def spinner_pause():
     global spinner_state
     sleep(0.05)
     spinner_state = 1
-    sleep(0.1)
+    sleep(0.11)
 
 
 def spinner_continue(text='Loading...'):
@@ -41,6 +41,7 @@ def spinner_continue(text='Loading...'):
 
 def spinner_stop():
     global spinner_state
+    spinner_pause()
     spinner_state = 2
 
 

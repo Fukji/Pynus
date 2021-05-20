@@ -7,7 +7,7 @@ from pynus.modes import classes, forums
 from pynus.utils import progress, webbrowser
 
 VERSION = 'v0.2.1'
-BUILD = '20210520'
+BUILD = '20210521'
 
 
 # Check for positive integer in argument
@@ -85,18 +85,14 @@ def main():
                 if args.mode != 'forum':
                     print('Invalid mode, running in forum checking mode.')
                 forums.check_link(browser, args)
-        except KeyboardInterrupt:
-            print('\nProcess terminated without error.')
-        except SystemExit:
+        except (KeyboardInterrupt, SystemExit):
             pass
         except:
             if debug:
                 traceback.print_exc()
-            print('Unexpected error occured:', sys.exc_info()[0])
+            print('Unexpected error occured:', sys.exc_info()[0])    
 
     finally:
-        progress.spinner_stop()
-        progress.spinner.join()
         webbrowser.terminate(browser)
     
 
