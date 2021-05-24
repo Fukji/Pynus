@@ -27,6 +27,7 @@ def terminate(browser):
 
 # Alert the user regarding bad connection
 def slow_connection(browser):
+    progress.spinner_pause()
     print('Your connection to BINUSMAYA is currently unstable.')
     sys.exit(0)
 

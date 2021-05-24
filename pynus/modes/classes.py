@@ -1,7 +1,7 @@
 import re
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from getpass import getpass
 from pynus.utils import progress, webbrowser
 from selenium import webdriver
@@ -29,11 +29,11 @@ def logout():
 
 
 def countdown(meeting):
-    if meeting[0] < datetime.now():
+    if meeting[0] < datetime.now(timezone.utc).replace(tzinfo=None):
         wait_time = 0
     else:
-        wait_time = (meeting[0] - datetime.now().replace(
-                     microsecond=0)).total_seconds()
+        wait_time = (meeting[0] - datetime.now(timezone.utc).replace(
+                     microsecond=0, tzinfo=None)).total_seconds()
 
     print(f'\n{meeting[3]} - {meeting[4]}')
     print(f'{meeting[2]}')
@@ -51,8 +51,8 @@ def countdown(meeting):
         sleep(1)
         wait_time -= 1
 
-    curr_time = datetime.now().strftime('%H:%M:%S')
-    text = f'[\033[1m\033[92mOK\033[0m] Joined at {curr_time}'
+    curr_time = (datetime.now(timezone.utc) + timedelta(hours=7)).strftime('%H:%M:%S')
+    text = f'[\033[1m\033[92mOK\033[0m] Joined at {curr_time} WIB'
     print(f'{text: <{MIN_WIDTH}}')
 
 
@@ -80,15 +80,16 @@ def fetch_meetings(username, password):
     for i in range(len(meeting_link)):
         if meeting_link[i].text == '-':
             continue
-        time = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][0],
-                                 '%d %b %Y %H:%M:%S') + timedelta(minutes=-10)
+        starttime = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][0],
+                                 '%d %b %Y %H:%M:%S') + timedelta(hours=-7, minutes=-10)
         endtime = datetime.strptime(meeting_date[i] + ' ' + meeting_time[i][1],
-                                    '%d %b %Y %H:%M:%S')
+                                    '%d %b %Y %H:%M:%S') + timedelta(hours=-7)
+
         link = str(meeting_link[i].find_element_by_tag_name('a')
                    .get_attribute('href'))
         course = meeting_course[i].text
         classtype = meeting_classtype[i].text
-        meetings.append([time, endtime, link, course, classtype])
+        meetings.append([starttime, endtime, link, course, classtype])
 
     logout()
     return meetings
@@ -108,7 +109,7 @@ def join_meeting(meeting):
         alt_browser.find_element_by_class_name('_1FvRrPS6').click()
         alt_browser.quit()
 
-    wait_time = (meeting[1] - datetime.now()).total_seconds()
+    wait_time = (meeting[1] - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds()
     sleep(wait_time)
     sleep(60)
 
