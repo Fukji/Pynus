@@ -201,7 +201,7 @@ def print_thread_list():
     print(f'Checked {len(links)} thread(s).',
           f'Found {len(not_replied)} \033[91munreplied\033[0m/\033[93munchecked\033[0m.')
 
-    time_limit = (datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=limit)).date()
+    time_limit = (datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=-limit, hours=7)).date()
     printed = False
 
     print('\n', f'Displaying thread(s) within your time range:', sep='')
@@ -212,8 +212,8 @@ def print_thread_list():
             print(f'Source: {unreplied["source"]}')
             print('Status: \033[93munchecked\033[0m')
         else:
-            time_posted = (datetime.strptime(
-                unreplied['posted'], '%d/%m/%Y %H:%M') - timedelta(hours=7)).date()
+            time_posted = datetime.strptime(
+                unreplied['posted'], '%d/%m/%Y %H:%M').date()
             if time_posted >= time_limit:
                 printed = True
                 print('\n', f'{unreplied["title"]}', sep='')

@@ -17,6 +17,8 @@ XPATHS = {
     'submit_myclass': '//*[@id="login"]/form/p[4]/button'
 }
 
+MIN_WIDTH = 28
+
 
 def logout():
     menu = browser.find_element_by_class_name('expand-action')
@@ -37,8 +39,7 @@ def countdown(meeting):
 
     print(f'\n{meeting[3]} - {meeting[4]}')
     print(f'{meeting[2]}')
-    MIN_WIDTH = 28
-    while wait_time:
+    while wait_time > 0:
         out = '[\033[1m\033[93mNext\033[0m] ' + str(timedelta(seconds=wait_time))
         terminal_width = os.get_terminal_size().columns
         if terminal_width >= MIN_WIDTH:
@@ -51,9 +52,8 @@ def countdown(meeting):
         sleep(1)
         wait_time -= 1
 
-    curr_time = (datetime.now(timezone.utc) + timedelta(hours=7)).strftime('%H:%M:%S')
-    text = f'[\033[1m\033[92mOK\033[0m] Joined at {curr_time} WIB'
-    print(f'{text: <{MIN_WIDTH}}')
+    out = '[\033[1m\033[93mNext\033[0m] Joining class...'
+    print(f'{out: <{MIN_WIDTH}}', end='\r')
 
 
 def fetch_meetings(username, password):
@@ -109,9 +109,12 @@ def join_meeting(meeting):
         alt_browser.find_element_by_class_name('_1FvRrPS6').click()
         alt_browser.quit()
 
+    curr_time = (datetime.now(timezone.utc) + timedelta(hours=7)).strftime('%H:%M:%S')
+    text = f'[\033[1m\033[92mOK\033[0m] Joined at {curr_time} WIB'
+    print(f'{text: <{MIN_WIDTH}}')
+
     wait_time = (meeting[1] - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds()
     sleep(wait_time)
-    sleep(60)
 
 
 def standby(br, args):

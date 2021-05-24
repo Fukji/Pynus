@@ -6,8 +6,8 @@ import traceback
 from pynus.modes import classes, forums
 from pynus.utils import progress, webbrowser
 
-VERSION = 'v0.2.1'
-BUILD = '20210521'
+VERSION = 'v0.2.2'
+BUILD = '20210524'
 
 
 # Check for positive integer in argument
